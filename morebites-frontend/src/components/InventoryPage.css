@@ -1,0 +1,24 @@
+.inv-page-wrap { width: 100%; }
+
+.inv-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.inv-tab {
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #e5e5e5;
+  background: #fff;
+  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inv-tab.active {
+  background: #fff4e0;
+  border-color: #f0c878;
+  color: #a65f00;
+}

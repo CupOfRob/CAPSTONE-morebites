@@ -1,0 +1,171 @@
+.ar-page { width: 100%; }
+
+.ar-header { margin-bottom: 16px; }
+.ar-header h1 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.ar-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.ar-stat { padding: 16px 18px; }
+.ar-stat-label { font-size: 12px; color: var(--sa-muted); }
+.ar-stat-value { font-size: 28px; font-weight: 800; margin-top: 4px; }
+
+.ar-section {
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.ar-section h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.ar-table-wrap { overflow-x: auto; }
+
+.ar-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+}
+
+.ar-table th {
+  text-align: left;
+  padding: 12px 10px;
+  color: var(--sa-muted);
+  font-size: 11px;
+  text-transform: uppercase;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.ar-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid #f5f5f5;
+  vertical-align: middle;
+}
+
+.ar-id { color: var(--sa-accent); font-weight: 700; }
+
+.ar-badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #fdeaea;
+  color: #c62828;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.ar-empty {
+  text-align: center;
+  color: var(--sa-muted);
+  padding: 28px 10px !important;
+}
+
+.ar-actions { display: flex; gap: 6px; }
+
+.ar-icon {
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ebebeb;
+  border-radius: 7px;
+  background: #fff;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.ar-icon.restore { color: #2e9b4a; }
+.ar-icon.danger { color: #e53935; }
+
+.ar-pages {
+  display: flex;
+  justify-content: flex-end;
+  gap: 4px;
+  margin-top: 12px;
+}
+
+.ar-pages button {
+  min-width: 30px;
+  height: 30px;
+  border: 1px solid #e8e8e8;
+  border-radius: 7px;
+  background: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ar-pages button.active {
+  background: var(--sa-accent);
+  border-color: var(--sa-accent);
+}
+
+.ar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(20, 20, 20, 0.45);
+  display: grid;
+  place-items: center;
+  z-index: 100;
+  padding: 20px;
+}
+
+.ar-modal {
+  width: min(400px, 100%);
+  background: #fff;
+  border-radius: 16px;
+  padding: 22px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+  text-align: center;
+}
+
+.ar-modal h2 {
+  margin: 0 0 10px;
+  color: #e53935;
+  font-size: 20px;
+  font-weight: 800;
+}
+
+.ar-modal p {
+  margin: 0 0 18px;
+  font-size: 13px;
+  color: var(--sa-muted);
+  line-height: 1.45;
+}
+
+.ar-modal-foot {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.ar-btn-cancel {
+  height: 40px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: #e53935;
+  color: #fff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.ar-btn-yes {
+  height: 40px;
+  padding: 0 18px;
+  border: none;
+  border-radius: 8px;
+  background: var(--sa-accent);
+  color: #1a1a1a;
+  font-weight: 800;
+  cursor: pointer;
+}

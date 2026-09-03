@@ -11,6 +11,19 @@ import {
   XAxis,
   YAxis,
 } from 'recharts'
+import {
+  LuShoppingCart,
+  LuBike,
+  LuPackage,
+  LuUsers,
+  LuShieldAlert,
+  LuSettings,
+  LuChevronRight,
+  LuX,
+  LuSearch,
+  LuBellOff,
+} from 'react-icons/lu'
+import { TbClipboardList } from 'react-icons/tb'
 import logo from '../assets/logo.png'
 import {
   IconAccount,
@@ -100,9 +113,38 @@ const cashierNavItems = [
   { label: 'Driver', icon: IconHelmet },
 ]
 
-const notifications = []
-
 const notifTabs = ['All', 'Orders', 'Inventory', 'Dispatch', 'System']
+
+const NOTIF_CONFIG = {
+  order_new: {
+    icon: LuShoppingCart,
+    tone: { bg: '#FFF4E5', color: '#FFA500' },
+  },
+  dispatch: {
+    icon: LuBike,
+    tone: { bg: '#E8F1FC', color: '#3B82F6' },
+  },
+  low_stock: {
+    icon: LuPackage,
+    tone: { bg: '#FEF3C7', color: '#F59E0B' },
+  },
+  order_completed: {
+    icon: TbClipboardList,
+    tone: { bg: '#E8F7EE', color: '#22C55E' },
+  },
+  account: {
+    icon: LuUsers,
+    tone: { bg: '#F3E8FF', color: '#A855F7' },
+  },
+  security: {
+    icon: LuShieldAlert,
+    tone: { bg: '#FEE2E2', color: '#EF4444' },
+  },
+  system: {
+    icon: LuSettings,
+    tone: { bg: '#F3F4F6', color: '#4B5563' },
+  },
+}
 
 function stockTone(level) {
   if (level <= 15) return 'critical'
@@ -119,6 +161,45 @@ export default function SuperAdminDashboard({ user, onLogout }) {
   const [toTime, setToTime] = useState('To 8:00 PM')
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifTab, setNotifTab] = useState('All')
+  const [notifications, setNotifications] = useState([])
+  const [showAllNotifsModal, setShowAllNotifsModal] = useState(false)
+  const [modalNotifTab, setModalNotifTab] = useState('All')
+  const [modalSearch, setModalSearch] = useState('')
+
+  const getNotifMeta = (n) => {
+    return NOTIF_CONFIG[n?.type] || NOTIF_CONFIG.system
+  }
+
+  const handleMarkAllAsRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, unread: false })))
+  }
+
+  const handleNotificationClick = (n) => {
+    setNotifications((prev) =>
+      prev.map((item) => (item.id === n.id ? { ...item, unread: false } : item))
+    )
+    if (n.nav) {
+      setActiveNav(n.nav)
+      setNotifOpen(false)
+      setShowAllNotifsModal(false)
+    }
+  }
+
+  const filteredModalNotifs = useMemo(() => {
+    let list =
+      modalNotifTab === 'All'
+        ? notifications
+        : notifications.filter((n) => n.tab === modalNotifTab)
+    if (modalSearch.trim()) {
+      const q = modalSearch.toLowerCase()
+      list = list.filter(
+        (n) =>
+          (n.title && n.title.toLowerCase().includes(q)) ||
+          (n.body && n.body.toLowerCase().includes(q))
+      )
+    }
+    return list
+  }, [notifications, modalNotifTab, modalSearch])
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [salesData, setSalesData] = useState([])
   const [salesTotalLabel, setSalesTotalLabel] = useState('₱890.00')
@@ -165,6 +246,9 @@ export default function SuperAdminDashboard({ user, onLogout }) {
         )
         setActivityLog(d.activity_log || [])
         setLowStocks(d.low_stocks || [])
+        if (d.notifications && Array.isArray(d.notifications)) {
+          setNotifications(d.notifications)
+        }
       })
       .catch(console.error)
     return () => {
@@ -200,13 +284,12 @@ export default function SuperAdminDashboard({ user, onLogout }) {
     function onKeyDown(e) {
       if (e.key === 'Escape') {
         setShowLogoutModal(false)
+        setShowAllNotifsModal(false)
       }
     }
-    if (showLogoutModal) {
-      window.addEventListener('keydown', onKeyDown)
-      return () => window.removeEventListener('keydown', onKeyDown)
-    }
-  }, [showLogoutModal])
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   const filteredNotifs =
     notifTab === 'All' ? notifications : notifications.filter((n) => n.tab === notifTab)
@@ -329,6 +412,121 @@ export default function SuperAdminDashboard({ user, onLogout }) {
         </div>
       )}
 
+      {showAllNotifsModal && (
+        <div
+          className="sa-logout-backdrop"
+          onClick={() => setShowAllNotifsModal(false)}
+        >
+          <div
+            className="sa-all-notifs-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sa-all-notifs-title"
+          >
+            <div className="sa-all-notifs-header">
+              <div className="sa-all-notifs-title-wrap">
+                <h2 id="sa-all-notifs-title">Notifications</h2>
+                {notifications.filter((n) => n.unread).length > 0 && (
+                  <span className="sa-notif-badge">
+                    {notifications.filter((n) => n.unread).length} unread
+                  </span>
+                )}
+              </div>
+              <div className="sa-all-notifs-header-actions">
+                <button
+                  type="button"
+                  className="sa-notif-mark-read"
+                  onClick={handleMarkAllAsRead}
+                >
+                  Mark all as read
+                </button>
+                <button
+                  type="button"
+                  className="sa-modal-close-btn"
+                  onClick={() => setShowAllNotifsModal(false)}
+                  aria-label="Close"
+                >
+                  <LuX size={16} />
+                </button>
+              </div>
+            </div>
+
+            <div className="sa-all-notifs-filter-row">
+              <div className="sa-notif-tabs" style={{ padding: 0 }}>
+                {notifTabs.map((tab) => (
+                  <button
+                    key={tab}
+                    type="button"
+                    className={`sa-notif-tab${modalNotifTab === tab ? ' active' : ''}`}
+                    onClick={() => setModalNotifTab(tab)}
+                  >
+                    {tab}
+                  </button>
+                ))}
+              </div>
+
+              <div className="sa-notif-search-wrap">
+                <LuSearch className="sa-notif-search-icon" size={14} />
+                <input
+                  type="text"
+                  placeholder="Search notifications..."
+                  value={modalSearch}
+                  onChange={(e) => setModalSearch(e.target.value)}
+                  className="sa-notif-search-input"
+                />
+                {modalSearch && (
+                  <button
+                    type="button"
+                    className="sa-notif-search-clear"
+                    onClick={() => setModalSearch('')}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="sa-all-notifs-list">
+              {filteredModalNotifs.length === 0 ? (
+                <div className="sa-notif-empty" style={{ padding: '60px 20px' }}>
+                  <LuBellOff size={36} style={{ color: '#9CA3AF', marginBottom: 10 }} />
+                  <div style={{ fontWeight: 600, color: '#4B5563', fontSize: 15 }}>No notifications found</div>
+                  <div style={{ color: '#9CA3AF', fontSize: 13, marginTop: 4 }}>
+                    {modalSearch ? 'Try a different search keyword' : 'New orders, inventory alerts, and dispatch updates will appear here.'}
+                  </div>
+                </div>
+              ) : (
+                filteredModalNotifs.map((n) => {
+                  const meta = getNotifMeta(n)
+                  const Icon = meta.icon
+                  return (
+                    <div
+                      key={n.id}
+                      className="sa-notif-item"
+                      onClick={() => handleNotificationClick(n)}
+                    >
+                      <div
+                        className="sa-notif-icon-circle"
+                        style={{ background: meta.tone.bg, color: meta.tone.color }}
+                      >
+                        <Icon size={20} />
+                      </div>
+                      <div className="sa-notif-body">
+                        <strong className="sa-notif-title">{n.title}</strong>
+                        <p className="sa-notif-desc">{n.body}</p>
+                        <span className="sa-notif-time">{n.time}</span>
+                      </div>
+                      {n.unread && <span className="sa-notif-unread-dot" />}
+                    </div>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="sa-main">
         {activeNav === 'Orders' ? (
           <OrderManagement />
@@ -371,7 +569,11 @@ export default function SuperAdminDashboard({ user, onLogout }) {
               <div className="sa-notif">
                 <div className="sa-notif-head">
                   <h3>Notifications</h3>
-                  <button type="button" className="sa-link">
+                  <button
+                    type="button"
+                    className="sa-notif-mark-read"
+                    onClick={handleMarkAllAsRead}
+                  >
                     Mark all as read
                   </button>
                 </div>
@@ -391,28 +593,32 @@ export default function SuperAdminDashboard({ user, onLogout }) {
 
                 <div className="sa-notif-list">
                   {filteredNotifs.length === 0 ? (
-                    <div className="sa-notif-empty" style={{ padding: '24px 16px', textAlign: 'center', color: '#8a8a8a', fontSize: 13 }}>
-                      No notifications
+                    <div className="sa-notif-empty">
+                      <LuBellOff size={28} style={{ color: '#9CA3AF', marginBottom: 6 }} />
+                      <div>No notifications yet</div>
                     </div>
                   ) : (
                     filteredNotifs.map((n) => {
-                      const Icon = n.icon
+                      const meta = getNotifMeta(n)
+                      const Icon = meta.icon
                       return (
-                        <div key={n.id} className="sa-notif-item">
+                        <div
+                          key={n.id}
+                          className="sa-notif-item"
+                          onClick={() => handleNotificationClick(n)}
+                        >
                           <div
-                            className="sa-notif-icon"
-                            style={{ background: n.tone.bg, color: n.tone.color }}
+                            className="sa-notif-icon-circle"
+                            style={{ background: meta.tone.bg, color: meta.tone.color }}
                           >
-                            <Icon />
+                            <Icon size={20} />
                           </div>
                           <div className="sa-notif-body">
-                            <strong>{n.title}</strong>
-                            <p>{n.body}</p>
-                          </div>
-                          <div className="sa-notif-meta">
+                            <strong className="sa-notif-title">{n.title}</strong>
+                            <p className="sa-notif-desc">{n.body}</p>
                             <span className="sa-notif-time">{n.time}</span>
-                            {n.unread && <span className="sa-unread" />}
                           </div>
+                          {n.unread && <span className="sa-notif-unread-dot" />}
                         </div>
                       )
                     })
@@ -420,8 +626,17 @@ export default function SuperAdminDashboard({ user, onLogout }) {
                 </div>
 
                 <div className="sa-notif-foot">
-                  <button type="button">
-                    View All Notifications <IconChevron />
+                  <button
+                    type="button"
+                    className="sa-notif-view-all"
+                    onClick={() => {
+                      setNotifOpen(false)
+                      setModalNotifTab(notifTab)
+                      setShowAllNotifsModal(true)
+                    }}
+                  >
+                    <span>View All Notifications</span>
+                    <LuChevronRight />
                   </button>
                 </div>
               </div>

@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  LuSearch,
+  LuChevronDown,
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+  LuEye,
+} from 'react-icons/lu'
+import {
   IconChevronDown,
   IconClose,
   IconSearch,
@@ -92,7 +100,7 @@ export default function DriverManagement({ embedded = false }) {
 
       <div className="dm-toolbar sa-card">
         <div className="dm-search">
-          <IconSearch />
+          <LuSearch size={15} />
           <input
             type="search"
             placeholder="Search driver name or by contact..."
@@ -107,7 +115,7 @@ export default function DriverManagement({ embedded = false }) {
         <div className="dm-filter" ref={statusRef}>
           <button type="button" className="dm-filter-btn" onClick={() => setOpenFilter((v) => (v === 'status' ? null : 'status'))}>
             {status}
-            <IconChevronDown />
+            <LuChevronDown size={14} />
           </button>
           {openFilter === 'status' && (
             <div className="dm-menu">
@@ -132,7 +140,7 @@ export default function DriverManagement({ embedded = false }) {
         <div className="dm-filter" ref={sortRef}>
           <button type="button" className="dm-filter-btn" onClick={() => setOpenFilter((v) => (v === 'sort' ? null : 'sort'))}>
             {sort}
-            <IconChevronDown />
+            <LuChevronDown size={14} />
           </button>
           {openFilter === 'sort' && (
             <div className="dm-menu">
@@ -166,7 +174,7 @@ export default function DriverManagement({ embedded = false }) {
                 <th>License Expiry</th>
                 <th>Customer Rating</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th style={{ textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -183,9 +191,10 @@ export default function DriverManagement({ embedded = false }) {
                       {d.status}
                     </span>
                   </td>
-                  <td>
+                  <td style={{ textAlign: 'right' }}>
                     <button type="button" className="dm-view" onClick={() => setSelected(d)}>
-                      View
+                      <LuEye size={13} />
+                      <span>View</span>
                     </button>
                   </td>
                 </tr>
@@ -194,12 +203,25 @@ export default function DriverManagement({ embedded = false }) {
           </table>
         </div>
         <div className="dm-pagination">
+          <span className="dm-pagination-info">
+            Showing {(currentPage - 1) * pageSize + (filtered.length ? 1 : 0)} to{' '}
+            {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} drivers
+          </span>
           <div className="dm-pages">
+            <button
+              type="button"
+              className="dm-page-btn arrow"
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              aria-label="Previous page"
+            >
+              <LuChevronLeft size={16} />
+            </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
-                className={n === currentPage ? 'active' : ''}
+                className={`dm-page-btn${n === currentPage ? ' active' : ''}`}
                 onClick={() => setPage(n)}
               >
                 {n}
@@ -207,10 +229,12 @@ export default function DriverManagement({ embedded = false }) {
             ))}
             <button
               type="button"
+              className="dm-page-btn arrow"
               disabled={currentPage >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              aria-label="Next page"
             >
-              {'>'}
+              <LuChevronRight size={16} />
             </button>
           </div>
         </div>
@@ -222,8 +246,8 @@ export default function DriverManagement({ embedded = false }) {
           <aside className="dm-drawer" role="dialog" aria-modal="true">
             <div className="dm-drawer-head">
               <h2>Driver Details</h2>
-              <button type="button" className="dm-icon-btn" onClick={() => setSelected(null)} aria-label="Close">
-                <IconClose />
+              <button type="button" className="dm-modal-close-circle" onClick={() => setSelected(null)} aria-label="Close">
+                <LuX size={18} />
               </button>
             </div>
 

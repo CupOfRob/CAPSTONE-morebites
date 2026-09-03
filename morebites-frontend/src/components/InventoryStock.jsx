@@ -1,5 +1,25 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
+  LuSearch,
+  LuPlus,
+  LuClock,
+  LuFilter,
+  LuChevronDown,
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+  LuPencil,
+  LuBoxes,
+  LuTriangleAlert,
+  LuCalendar,
+  LuCircleCheck,
+  LuRotateCcw,
+  LuTrash2,
+  LuShoppingCart,
+  LuSlidersHorizontal,
+  LuPackage,
+} from 'react-icons/lu'
+import {
   IconBox,
   IconCalendar,
   IconCart,
@@ -110,7 +130,7 @@ function FilterSelect({ value, options, open, onToggle, onSelect, menuRef }) {
     <div className="inv-filter" ref={menuRef}>
       <button type="button" className="inv-filter-btn" onClick={onToggle}>
         {value}
-        <IconChevronDown />
+        <LuChevronDown size={15} />
       </button>
       {open && (
         <div className="inv-menu">
@@ -128,11 +148,6 @@ function FilterSelect({ value, options, open, onToggle, onSelect, menuRef }) {
       )}
     </div>
   )
-}
-
-function ItemAvatar({ name }) {
-  const letter = (name || '?').trim().charAt(0).toUpperCase()
-  return <span className="inv-item-avatar">{letter}</span>
 }
 
 function UnitInput({ value, onChange, unit = 'pcs', min = '0', placeholder }) {
@@ -533,8 +548,8 @@ export default function InventoryStock({ onOpenExpiring }) {
               <h2>{title}</h2>
               <p className="inv-modal-sub">{subtitle}</p>
             </div>
-            <button type="button" className="inv-icon-btn" onClick={closeFormModal} aria-label="Close">
-              <IconClose />
+            <button type="button" className="inv-modal-close-circle" onClick={closeFormModal} aria-label="Close">
+              <LuX size={18} />
             </button>
           </div>
 
@@ -717,7 +732,7 @@ export default function InventoryStock({ onOpenExpiring }) {
         </div>
         <div className="inv-header-actions">
           <button type="button" className="inv-btn-outline" onClick={openHistory}>
-            <IconClock /> Stock History
+            <LuClock size={16} /> Stock History
           </button>
           <button
             type="button"
@@ -727,24 +742,24 @@ export default function InventoryStock({ onOpenExpiring }) {
               setAddOpen(true)
             }}
           >
-            <IconPlus /> Add Stock
+            <LuPlus size={16} /> Add Stock
           </button>
         </div>
       </header>
 
       <section className="inv-stats">
-        <article className="inv-stat sa-card">
+        <article className="inv-stat">
           <div className="inv-stat-icon yellow">
-            <IconBox />
+            <LuPackage size={22} />
           </div>
           <div>
             <div className="inv-stat-label">Total Stock Items</div>
             <div className="inv-stat-value">{stats.total}</div>
           </div>
         </article>
-        <article className="inv-stat sa-card">
+        <article className="inv-stat">
           <div className="inv-stat-icon red">
-            <IconWarning />
+            <LuTriangleAlert size={22} />
           </div>
           <div>
             <div className="inv-stat-label">Low Stock Alerts</div>
@@ -752,7 +767,7 @@ export default function InventoryStock({ onOpenExpiring }) {
           </div>
         </article>
         <article
-          className={`inv-stat sa-card${onOpenExpiring ? ' inv-stat-clickable' : ''}`}
+          className={`inv-stat${onOpenExpiring ? ' inv-stat-clickable' : ''}`}
           onClick={onOpenExpiring}
           onKeyDown={
             onOpenExpiring
@@ -768,16 +783,16 @@ export default function InventoryStock({ onOpenExpiring }) {
           tabIndex={onOpenExpiring ? 0 : undefined}
         >
           <div className="inv-stat-icon orange">
-            <IconCalendar />
+            <LuCalendar size={22} />
           </div>
           <div>
             <div className="inv-stat-label">Expiring Soon</div>
             <div className="inv-stat-value warn">{stats.expiring}</div>
           </div>
         </article>
-        <article className="inv-stat sa-card">
+        <article className="inv-stat">
           <div className="inv-stat-icon green">
-            <IconCheck />
+            <LuCircleCheck size={22} />
           </div>
           <div>
             <div className="inv-stat-label">Sufficient Items</div>
@@ -786,9 +801,9 @@ export default function InventoryStock({ onOpenExpiring }) {
         </article>
       </section>
 
-      <section className="inv-toolbar sa-card">
+      <section className="inv-toolbar">
         <div className="inv-search">
-          <IconSearch />
+          <LuSearch size={16} />
           <input
             type="search"
             placeholder="Search name, categories, batch no..."
@@ -831,11 +846,11 @@ export default function InventoryStock({ onOpenExpiring }) {
             setOpenFilter(null)
           }}
         >
-          <IconFilter /> Filter
+          <LuFilter size={15} /> Filter
         </button>
       </section>
 
-      <section className="inv-table-card sa-card">
+      <section className="inv-table-card">
         <div className="inv-table-wrap">
           <table className="inv-table">
             <thead>
@@ -848,7 +863,7 @@ export default function InventoryStock({ onOpenExpiring }) {
                 <th>Expiry Date</th>
                 <th>Days Left</th>
                 <th>Status</th>
-                <th>Actions</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -864,45 +879,48 @@ export default function InventoryStock({ onOpenExpiring }) {
                   return (
                     <tr key={item.id}>
                       <td>
-                        <div className="inv-item-cell">
-                          <ItemAvatar name={item.name} />
-                          <div>
-                            <div className="inv-name">{item.name}</div>
-                          </div>
+                        <div className="inv-name">{item.name}</div>
+                      </td>
+                      <td>
+                        <span className="inv-category-text">
+                          {item.category_label ||
+                            formatInventoryCategory(
+                              item.category,
+                              item.subcategory,
+                              item.subcategory_detail,
+                            )}
+                        </span>
+                      </td>
+                      <td>
+                        <div className={`inv-stock-val ${item.status === 'Low Stock' ? 'low' : item.status === 'Out of Stock' ? 'out' : ''}`}>
+                          <strong>{item.stock}</strong> <span className="inv-unit">{item.unit}</span>
                         </div>
                       </td>
                       <td>
-                        {item.category_label ||
-                          formatInventoryCategory(
-                            item.category,
-                            item.subcategory,
-                            item.subcategory_detail,
-                          )}
+                        <span className="inv-reorder-val">
+                          {item.reorder} <span className="inv-unit">{item.unit}</span>
+                        </span>
                       </td>
-                      <td className={`inv-stock ${sc}`}>
-                        {item.stock} {item.unit}
-                      </td>
+                      <td className="inv-date-cell">{item.date_placed || '—'}</td>
+                      <td className="inv-date-cell">{item.expiry_date || '—'}</td>
                       <td>
-                        {item.reorder} {item.unit}
-                      </td>
-                      <td>{item.date_placed || '—'}</td>
-                      <td>{item.expiry_date || '—'}</td>
-                      <td className={`inv-days ${daysLeftClass(item.days_left)}`}>
-                        {formatDaysLeft(item.days_left)}
+                        <span className={`inv-days-pill ${daysLeftClass(item.days_left)}`}>
+                          {formatDaysLeft(item.days_left)}
+                        </span>
                       </td>
                       <td>
                         <span className={`inv-badge ${sc}`}>{item.status}</span>
                       </td>
-                      <td>
-                        <div className="inv-actions">
+                      <td style={{ textAlign: 'right' }}>
+                        <div className="inv-actions" style={{ justifyContent: 'flex-end' }}>
                           <button
                             type="button"
-                            className="inv-icon-btn"
+                            className="inv-icon-btn restock"
                             aria-label="Restock"
                             title="Restock"
                             onClick={() => openRestock(item)}
                           >
-                            <IconRefresh />
+                            <LuRotateCcw size={15} />
                           </button>
                           <button
                             type="button"
@@ -911,7 +929,7 @@ export default function InventoryStock({ onOpenExpiring }) {
                             title="Edit"
                             onClick={() => openEdit(item)}
                           >
-                            <IconEdit />
+                            <LuPencil size={15} />
                           </button>
                           <button
                             type="button"
@@ -920,7 +938,7 @@ export default function InventoryStock({ onOpenExpiring }) {
                             title="Delete"
                             onClick={() => removeItem(item.id)}
                           >
-                            <IconTrash />
+                            <LuTrash2 size={15} />
                           </button>
                         </div>
                       </td>
@@ -937,14 +955,20 @@ export default function InventoryStock({ onOpenExpiring }) {
             {Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} items
           </span>
           <div className="inv-pages">
-            <button type="button" disabled={currentPage <= 1} onClick={() => setPage((p) => p - 1)}>
-              {'<'}
+            <button
+              type="button"
+              className="inv-page-btn arrow"
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => p - 1)}
+              aria-label="Previous page"
+            >
+              <LuChevronLeft size={16} />
             </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
-                className={n === currentPage ? 'active' : ''}
+                className={`inv-page-btn${n === currentPage ? ' active' : ''}`}
                 onClick={() => setPage(n)}
               >
                 {n}
@@ -952,10 +976,12 @@ export default function InventoryStock({ onOpenExpiring }) {
             ))}
             <button
               type="button"
+              className="inv-page-btn arrow"
               disabled={currentPage >= totalPages}
               onClick={() => setPage((p) => p + 1)}
+              aria-label="Next page"
             >
-              {'>'}
+              <LuChevronRight size={16} />
             </button>
           </div>
         </div>
@@ -984,11 +1010,11 @@ export default function InventoryStock({ onOpenExpiring }) {
               <h2>Restock {restockItem.name}</h2>
               <button
                 type="button"
-                className="inv-icon-btn"
+                className="inv-modal-close-circle"
                 onClick={() => setRestockItem(null)}
                 aria-label="Close"
               >
-                <IconClose />
+                <LuX size={18} />
               </button>
             </div>
             <div className="inv-modal-body">
@@ -1037,15 +1063,15 @@ export default function InventoryStock({ onOpenExpiring }) {
                   <h2 id="inv-activity-title">Inventory Activity Log</h2>
                   <p className="inv-activity-sub">View and track all inventory movements and changes</p>
                 </div>
-                <button type="button" className="inv-icon-btn" onClick={closeHistory} aria-label="Close">
-                  <IconClose />
+                <button type="button" className="inv-modal-close-circle" onClick={closeHistory} aria-label="Close">
+                  <LuX size={18} />
                 </button>
               </div>
 
               <div className="inv-activity-stats">
                 <article className="inv-activity-stat">
                   <div className="inv-activity-stat-icon green">
-                    <IconBox />
+                    <LuBoxes size={20} />
                   </div>
                   <div>
                     <div className="inv-activity-stat-label">New Stock / Restock</div>
@@ -1054,7 +1080,7 @@ export default function InventoryStock({ onOpenExpiring }) {
                 </article>
                 <article className="inv-activity-stat">
                   <div className="inv-activity-stat-icon blue">
-                    <IconCart />
+                    <LuShoppingCart size={20} />
                   </div>
                   <div>
                     <div className="inv-activity-stat-label">Stock Deductions</div>
@@ -1063,7 +1089,7 @@ export default function InventoryStock({ onOpenExpiring }) {
                 </article>
                 <article className="inv-activity-stat">
                   <div className="inv-activity-stat-icon orange">
-                    <IconSliders />
+                    <LuSlidersHorizontal size={20} />
                   </div>
                   <div>
                     <div className="inv-activity-stat-label">Manual Adjustments</div>
@@ -1072,7 +1098,7 @@ export default function InventoryStock({ onOpenExpiring }) {
                 </article>
                 <article className="inv-activity-stat">
                   <div className="inv-activity-stat-icon red">
-                    <IconTrash />
+                    <LuTrash2 size={20} />
                   </div>
                   <div>
                     <div className="inv-activity-stat-label">Expired Items</div>
@@ -1091,7 +1117,7 @@ export default function InventoryStock({ onOpenExpiring }) {
 
               <div className="inv-activity-toolbar">
                 <div className="inv-search">
-                  <IconSearch />
+                  <LuSearch size={16} />
                   <input
                     type="search"
                     placeholder="Search item, batch no., reason..."
@@ -1182,7 +1208,6 @@ export default function InventoryStock({ onOpenExpiring }) {
                           <td className="inv-log-datetime">{log.datetime}</td>
                           <td>
                             <div className="inv-log-item">
-                              <ItemAvatar name={log.item} />
                               <div>
                                 <div className="inv-name">{log.item}</div>
                                 <div className="inv-log-batch">
@@ -1261,7 +1286,7 @@ export default function InventoryStock({ onOpenExpiring }) {
                   </button>
                 </div>
                 <button type="button" className="inv-btn-outline inv-btn-export" onClick={exportLogs}>
-                  <IconUpload /> Export
+                  <LuUpload size={15} /> Export
                 </button>
               </div>
             </div>
@@ -1272,11 +1297,11 @@ export default function InventoryStock({ onOpenExpiring }) {
                   <h3>Activity Details</h3>
                   <button
                     type="button"
-                    className="inv-icon-btn"
+                    className="inv-modal-close-circle"
                     onClick={() => setSelectedLog(null)}
                     aria-label="Close details"
                   >
-                    <IconClose />
+                    <LuX size={18} />
                   </button>
                 </div>
                 <div className="inv-details-hero">
@@ -1284,7 +1309,6 @@ export default function InventoryStock({ onOpenExpiring }) {
                     {selectedLog.action}
                   </span>
                   <div className="inv-details-item">
-                    <ItemAvatar name={selectedLog.item} />
                     <div>
                       <div className="inv-name">{selectedLog.item}</div>
                       <div className="inv-log-batch">

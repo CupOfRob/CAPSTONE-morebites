@@ -16,6 +16,7 @@ class DispatchController extends Controller
         $pending = Order::query()
             ->whereIn('status', ['Pending', 'Ready', 'Preparing'])
             ->whereNull('driver_id')
+            ->whereNotIn('order_type', ['Dine-in', 'Takeout'])
             ->latest()
             ->get()
             ->map(fn (Order $o) => [
@@ -25,11 +26,13 @@ class DispatchController extends Controller
                 'address' => $o->delivery_address ?: 'N/A',
                 'total' => (float) $o->total,
                 'status' => 'Waiting for rider',
+                'order_type' => $o->order_type,
             ]);
 
         $monitoring = Order::query()
             ->with(['driver', 'items', 'customer'])
             ->whereNotNull('driver_id')
+            ->whereNotIn('order_type', ['Dine-in', 'Takeout'])
             ->whereIn('status', ['Assigned', 'Picked Up', 'Out for Delivery', 'Completed', 'Delivered', 'Cancelled'])
             ->latest()
             ->take(10)
@@ -65,11 +68,21 @@ class DispatchController extends Controller
 
         $riders = User::query()
             ->where('role', 'driver')
-            ->where('status', 'Active')
             ->whereNull('archived_at')
+            ->where(function ($q) {
+                $q->where('status', 'Active')->orWhereNull('status');
+            })
             ->orderBy('name')
             ->get()
-            ->map(fn (User $u, $i) => 'Rider - '.($i + 1).' '.$u->name)
+            ->map(fn (User $u, $i) => [
+                'id' => $u->id,
+                'name' => $u->name,
+                'label' => 'Rider - '.($i + 1).' '.$u->name,
+                'phone' => $u->phone ?: '+63 912 345 6789',
+                'vehicle' => ($u->vehicle_type ?: 'Motorcycle').($u->plate_no ? ' • '.$u->plate_no : ''),
+                'rating' => $u->rating ? (float) $u->rating : 5.0,
+                'status' => $u->status ?: 'Active',
+            ])
             ->values();
 
         return response()->json([

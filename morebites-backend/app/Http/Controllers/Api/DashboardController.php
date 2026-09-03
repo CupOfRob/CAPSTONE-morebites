@@ -95,6 +95,90 @@ class DashboardController extends Controller
                     : 0,
             ]);
 
+        $notifications = collect();
+
+        // 1. Recent Orders
+        $recentOrdersForNotifs = Order::query()->latest()->take(10)->get();
+        foreach ($recentOrdersForNotifs as $ord) {
+            $isCompleted = $ord->status === 'Completed';
+            $isDispatch = in_array($ord->status, ['Out for Delivery', 'Ready']);
+            $tab = $isDispatch ? 'Dispatch' : 'Orders';
+            $type = $isCompleted ? 'order_completed' : ($isDispatch ? 'dispatch' : 'order_new');
+            $title = $isCompleted
+                ? "Order #{$ord->order_code} completed"
+                : ($isDispatch ? "Order #{$ord->order_code} out for delivery" : "New order #{$ord->order_code} received");
+            $body = $isCompleted
+                ? "The order for {$ord->customer_name} has been completed."
+                : ($isDispatch ? "Delivery is in progress." : "A new order has been placed by {$ord->customer_name}.");
+
+            $notifications->push([
+                'id' => 'ord_'.$ord->id,
+                'tab' => $tab,
+                'type' => $type,
+                'title' => $title,
+                'body' => $body,
+                'time' => $ord->updated_at?->diffForHumans() ?: 'Just now',
+                'timestamp' => $ord->updated_at?->timestamp ?? 0,
+                'unread' => true,
+                'nav' => $tab,
+            ]);
+        }
+
+        // 2. Low Stock Alerts
+        $lowStockItems = InventoryItem::query()
+            ->whereIn('status', ['Low Stock', 'Out of Stock'])
+            ->orderBy('stock')
+            ->take(5)
+            ->get();
+        foreach ($lowStockItems as $item) {
+            $notifications->push([
+                'id' => 'inv_'.$item->id,
+                'tab' => 'Inventory',
+                'type' => 'low_stock',
+                'title' => "Low stock alert: {$item->name}",
+                'body' => "Only {$item->stock} {$item->unit} remaining in stock.",
+                'time' => $item->updated_at?->diffForHumans() ?: 'Recently',
+                'timestamp' => $item->updated_at?->timestamp ?? 0,
+                'unread' => true,
+                'nav' => 'Inventory',
+            ]);
+        }
+
+        // 3. Activity / System logs
+        $activityLogs = ActivityLog::query()->latest()->take(10)->get();
+        foreach ($activityLogs as $act) {
+            $lower = strtolower($act->action);
+            $tab = 'System';
+            $type = 'system';
+            if (str_contains($lower, 'order')) {
+                $tab = 'Orders';
+                $type = 'order_new';
+            } elseif (str_contains($lower, 'delivery') || str_contains($lower, 'driver')) {
+                $tab = 'Dispatch';
+                $type = 'dispatch';
+            } elseif (str_contains($lower, 'stock') || str_contains($lower, 'inventory')) {
+                $tab = 'Inventory';
+                $type = 'low_stock';
+            } elseif (str_contains($lower, 'account') || str_contains($lower, 'user')) {
+                $tab = 'System';
+                $type = 'account';
+            }
+
+            $notifications->push([
+                'id' => 'act_'.$act->id,
+                'tab' => $tab,
+                'type' => $type,
+                'title' => $act->action,
+                'body' => "By {$act->actor}",
+                'time' => $act->created_at?->diffForHumans() ?: 'Just now',
+                'timestamp' => $act->created_at?->timestamp ?? 0,
+                'unread' => false,
+                'nav' => $tab === 'System' ? 'Account' : $tab,
+            ]);
+        }
+
+        $allNotifications = $notifications->sortByDesc('timestamp')->values();
+
         return response()->json([
             'data' => [
                 'period' => $period,
@@ -111,6 +195,7 @@ class DashboardController extends Controller
                 'recent_orders' => $recentOrders,
                 'activity_log' => $activity,
                 'low_stocks' => $lowStocks,
+                'notifications' => $allNotifications,
             ],
         ]);
     }

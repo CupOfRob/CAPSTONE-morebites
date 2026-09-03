@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
+import { LuPencil, LuX, LuCalculator } from 'react-icons/lu'
 import { IconClose, IconEdit } from './Icons'
 import { deliveryRatesApi } from '../api/client'
 import './DeliveryRatesSettings.css'
@@ -121,7 +122,7 @@ export default function DeliveryRatesSettings() {
                     <td>
                       <div className="dr-actions">
                         <button type="button" className="dr-icon" aria-label="Edit fee" onClick={() => openEdit(rate)}>
-                          <IconEdit />
+                          <LuPencil size={15} />
                         </button>
                       </div>
                     </td>
@@ -181,8 +182,8 @@ export default function DeliveryRatesSettings() {
           <div className="dr-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="dr-modal-head">
               <h2>Edit delivery fee</h2>
-              <button type="button" className="dr-icon" onClick={() => setModal(null)} aria-label="Close">
-                <IconClose />
+              <button type="button" className="dr-modal-close-circle" onClick={() => setModal(null)} aria-label="Close">
+                <LuX size={18} />
               </button>
             </div>
             <div className="dr-modal-body">

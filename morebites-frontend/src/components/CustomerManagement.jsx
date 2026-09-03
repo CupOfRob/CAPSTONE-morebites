@@ -1,5 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import {
+  LuSearch,
+  LuChevronDown,
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+  LuEye,
+  LuUsers,
+  LuUserCheck,
+  LuUserPlus,
+  LuStar,
+  LuShoppingCart,
+  LuCalendar,
+  LuCheck,
+} from 'react-icons/lu'
+import {
   IconCalendar,
   IconCart,
   IconCheck,
@@ -24,9 +39,9 @@ function FilterSelect({ value, options, open, onToggle, onSelect, menuRef, icon:
   return (
     <div className="cm-filter" ref={menuRef}>
       <button type="button" className="cm-filter-btn" onClick={onToggle}>
-        {Icon && <Icon />}
+        {Icon && <Icon size={14} />}
         {value}
-        <IconChevronDown />
+        <LuChevronDown size={14} />
       </button>
       {open && (
         <div className="cm-menu">
@@ -136,28 +151,28 @@ export default function CustomerManagement() {
 
       <section className="cm-stats">
         <article className="cm-stat sa-card">
-          <div className="cm-stat-icon purple"><IconCustomers /></div>
+          <div className="cm-stat-icon purple"><LuUsers size={20} /></div>
           <div>
             <div className="cm-stat-label">Total Customers</div>
             <div className="cm-stat-value">{stats.total.toLocaleString()}</div>
           </div>
         </article>
         <article className="cm-stat sa-card">
-          <div className="cm-stat-icon green"><IconCheck /></div>
+          <div className="cm-stat-icon green"><LuUserCheck size={20} /></div>
           <div>
             <div className="cm-stat-label">Active Customers</div>
             <div className="cm-stat-value">{stats.active}</div>
           </div>
         </article>
         <article className="cm-stat sa-card">
-          <div className="cm-stat-icon blue"><IconUser /></div>
+          <div className="cm-stat-icon blue"><LuUserPlus size={20} /></div>
           <div>
             <div className="cm-stat-label">New Customers This Month</div>
             <div className="cm-stat-value">{stats.newMonth}</div>
           </div>
         </article>
         <article className="cm-stat sa-card">
-          <div className="cm-stat-icon yellow"><IconStar /></div>
+          <div className="cm-stat-icon yellow"><LuStar size={20} /></div>
           <div>
             <div className="cm-stat-label">Frequent Buyers</div>
             <div className="cm-stat-value">{stats.frequent}</div>
@@ -167,7 +182,7 @@ export default function CustomerManagement() {
 
       <section className="cm-toolbar sa-card">
         <div className="cm-search">
-          <IconSearch />
+          <LuSearch size={15} />
           <input
             type="search"
             placeholder="Search customer, categories..."
@@ -199,7 +214,7 @@ export default function CustomerManagement() {
             setOpenFilter(null)
           }}
           menuRef={dateRef}
-          icon={IconCalendar}
+          icon={LuCalendar}
         />
         <FilterSelect
           value={status}
@@ -228,7 +243,7 @@ export default function CustomerManagement() {
                 <th>Registration Date</th>
                 <th>Total Orders</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th style={{ textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -246,9 +261,10 @@ export default function CustomerManagement() {
                       {c.status}
                     </span>
                   </td>
-                  <td>
+                  <td style={{ textAlign: 'right' }}>
                     <button type="button" className="cm-view" onClick={() => setSelected(c)}>
-                      View
+                      <LuEye size={13} />
+                      <span>View</span>
                     </button>
                   </td>
                 </tr>
@@ -257,21 +273,39 @@ export default function CustomerManagement() {
           </table>
         </div>
         <div className="cm-pagination">
-          <span>
+          <span className="cm-pagination-info">
             Showing {(currentPage - 1) * PAGE_SIZE + (filtered.length ? 1 : 0)} to{' '}
-            {Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} items
+            {Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} customers
           </span>
           <div className="cm-pages">
+            <button
+              type="button"
+              className="cm-page-btn arrow"
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              aria-label="Previous page"
+            >
+              <LuChevronLeft size={16} />
+            </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
-                className={n === currentPage ? 'active' : ''}
+                className={`cm-page-btn${n === currentPage ? ' active' : ''}`}
                 onClick={() => setPage(n)}
               >
                 {n}
               </button>
             ))}
+            <button
+              type="button"
+              className="cm-page-btn arrow"
+              disabled={currentPage >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              aria-label="Next page"
+            >
+              <LuChevronRight size={16} />
+            </button>
           </div>
         </div>
       </section>
@@ -281,8 +315,8 @@ export default function CustomerManagement() {
           <div className="cm-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="cm-modal-head">
               <h2>Customer Details</h2>
-              <button type="button" className="cm-icon-btn" onClick={() => setSelected(null)} aria-label="Close">
-                <IconClose />
+              <button type="button" className="cm-modal-close-circle" onClick={() => setSelected(null)} aria-label="Close">
+                <LuX size={18} />
               </button>
             </div>
 

@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import {
-  IconChevronDown,
-  IconClose,
-  IconEdit,
-  IconImage,
-  IconPlus,
-  IconRestore,
-  IconSearch,
-  IconTrash,
-} from './Icons'
+  LuSearch,
+  LuPlus,
+  LuPencil,
+  LuTrash2,
+  LuArchive,
+  LuRotateCcw,
+  LuChevronDown,
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+  LuImage,
+} from 'react-icons/lu'
 import { inventoryApi, mediaUrl, menuApi } from '../api/client'
 import './MenuManagement.css'
 
@@ -242,8 +245,8 @@ function ItemFormModal({ mode, initial, inventoryOptions, onClose, onSave }) {
       >
         <div className="mm-modal-head">
           <h2 id="mm-form-title">{title}</h2>
-          <button type="button" className="mm-icon-btn" onClick={onClose} aria-label="Close">
-            <IconClose />
+          <button type="button" className="mm-modal-close-circle" onClick={onClose} aria-label="Close">
+            <LuX size={18} />
           </button>
         </div>
 
@@ -257,7 +260,7 @@ function ItemFormModal({ mode, initial, inventoryOptions, onClose, onSave }) {
               <img src={mediaUrl(form.image)} alt="" />
             ) : (
               <>
-                <IconImage />
+                <LuImage size={28} />
                 <span>Upload Image</span>
               </>
             )}
@@ -302,7 +305,7 @@ function ItemFormModal({ mode, initial, inventoryOptions, onClose, onSave }) {
                 onClick={() => setCatOpen((v) => !v)}
               >
                 {form.category || 'Select Category'}
-                <IconChevronDown />
+                <LuChevronDown size={14} />
               </button>
               {catOpen && (
                 <div className="mm-select-menu">
@@ -382,12 +385,12 @@ function ItemFormModal({ mode, initial, inventoryOptions, onClose, onSave }) {
                       aria-label="Remove size"
                       onClick={() => removeSizeRow(i)}
                     >
-                      <IconClose />
+                      <LuX size={14} />
                     </button>
                   </div>
                 ))}
                 <button type="button" className="mm-add-size" onClick={addSizeRow}>
-                  <IconPlus /> Add Sizes
+                  <LuPlus size={14} /> Add Sizes
                 </button>
               </div>
             )}
@@ -429,7 +432,7 @@ function ItemFormModal({ mode, initial, inventoryOptions, onClose, onSave }) {
                             ? `${selected.name} (${selected.stock} ${selected.unit})`
                             : 'Select ingredient'}
                         </span>
-                        <IconChevronDown />
+                        <LuChevronDown size={14} />
                       </button>
                       {ingOpenIndex === i && (
                         <div className="mm-select-menu mm-recipe-menu">
@@ -487,14 +490,14 @@ function ItemFormModal({ mode, initial, inventoryOptions, onClose, onSave }) {
                       aria-label="Remove ingredient"
                       onClick={() => removeIngredientRow(i)}
                     >
-                      <IconClose />
+                      <LuX size={14} />
                     </button>
                   </div>
                 )
               })}
 
               <button type="button" className="mm-add-size" onClick={addIngredientRow}>
-                <IconPlus /> Add Ingredient
+                <LuPlus size={14} /> Add Ingredient
               </button>
             </div>
           </div>
@@ -522,8 +525,15 @@ function ConfirmModal({ title, message, confirmLabel, onClose, onConfirm }) {
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2>{title}</h2>
-        <p>{message}</p>
+        <div className="mm-modal-head">
+          <h2>{title}</h2>
+          <button type="button" className="mm-modal-close-circle" onClick={onClose} aria-label="Close">
+            <LuX size={18} />
+          </button>
+        </div>
+        <div className="mm-confirm-body">
+          <p>{message}</p>
+        </div>
         <div className="mm-modal-foot">
           <button type="button" className="mm-btn-ghost" onClick={onClose}>
             Cancel
@@ -676,7 +686,7 @@ export default function MenuManagement() {
         <h1>Menu Management</h1>
         <div className="mm-header-actions">
           <div className="mm-search">
-            <IconSearch />
+            <LuSearch size={15} />
             <input
               type="search"
               placeholder="Search menu items by name..."
@@ -695,7 +705,7 @@ export default function MenuManagement() {
               onClick={() => setCatOpen((v) => !v)}
             >
               {category}
-              <IconChevronDown />
+              <LuChevronDown size={14} />
             </button>
             {catOpen && (
               <div className="mm-select-menu">
@@ -725,7 +735,7 @@ export default function MenuManagement() {
               setFormState({ mode: 'add', item: emptyForm() })
             }}
           >
-            <IconPlus /> Add New Item
+            <LuPlus size={16} /> Add New Item
           </button>
         </div>
       </header>
@@ -834,7 +844,7 @@ export default function MenuManagement() {
                             setFormState({ mode: 'edit', item })
                           }}
                         >
-                          <IconEdit />
+                          <LuPencil size={15} />
                         </button>
                         {tab === 'active' ? (
                           <button
@@ -851,7 +861,7 @@ export default function MenuManagement() {
                               })
                             }
                           >
-                            <IconTrash />
+                            <LuArchive size={15} />
                           </button>
                         ) : (
                           <button
@@ -868,7 +878,7 @@ export default function MenuManagement() {
                               })
                             }
                           >
-                            <IconRestore />
+                            <LuRotateCcw size={15} />
                           </button>
                         )}
                       </div>
@@ -881,23 +891,25 @@ export default function MenuManagement() {
         </div>
 
         <div className="mm-pagination">
-          <span>
-            Showing {(currentPage - 1) * PAGE_SIZE + (filtered.length ? 1 : 0)}-
+          <span className="mm-pagination-info">
+            Showing {(currentPage - 1) * PAGE_SIZE + (filtered.length ? 1 : 0)} to{' '}
             {Math.min(currentPage * PAGE_SIZE, filtered.length)} of {filtered.length} items
           </span>
           <div className="mm-pages">
             <button
               type="button"
+              className="mm-page-btn arrow"
               disabled={currentPage <= 1}
               onClick={() => setPage((p) => Math.max(1, p - 1))}
+              aria-label="Previous page"
             >
-              {'<'}
+              <LuChevronLeft size={16} />
             </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
-                className={n === currentPage ? 'active' : ''}
+                className={`mm-page-btn${n === currentPage ? ' active' : ''}`}
                 onClick={() => setPage(n)}
               >
                 {n}
@@ -905,10 +917,12 @@ export default function MenuManagement() {
             ))}
             <button
               type="button"
+              className="mm-page-btn arrow"
               disabled={currentPage >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              aria-label="Next page"
             >
-              {'>'}
+              <LuChevronRight size={16} />
             </button>
           </div>
         </div>

@@ -1,3 +1,19 @@
+import {
+  LuLayoutGrid,
+  LuPackage,
+  LuUtensils,
+  LuUsers,
+  LuUser,
+  LuSettings,
+  LuLogOut,
+  LuShoppingCart,
+  LuBell,
+} from 'react-icons/lu'
+import { TbClipboardList } from 'react-icons/tb'
+import { FaMotorcycle } from 'react-icons/fa'
+import { HiChartBar } from 'react-icons/hi2'
+import { MdSportsMotorsports } from 'react-icons/md'
+
 const stroke = {
   fill: 'none',
   stroke: 'currentColor',
@@ -6,108 +22,44 @@ const stroke = {
   strokeLinejoin: 'round',
 }
 
-export function IconGrid(props) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <rect x="3" y="3" width="7" height="7" rx="1.2" {...stroke} />
-      <rect x="14" y="3" width="7" height="7" rx="1.2" {...stroke} />
-      <rect x="3" y="14" width="7" height="7" rx="1.2" {...stroke} />
-      <rect x="14" y="14" width="7" height="7" rx="1.2" {...stroke} />
-    </svg>
-  )
+export function IconGrid({ size = 20, width, height, className = '', ...props }) {
+  return <LuLayoutGrid size={width || height || size} className={className} {...props} />
 }
 
-export function IconOrders(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <rect x="5" y="4" width="14" height="17" rx="2" {...stroke} />
-      <path d="M9 4.5h6V6a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4.5z" {...stroke} />
-      <path d="M9 11h6M9 14.5h6M9 18h4" {...stroke} />
-    </svg>
-  )
+export function IconOrders({ size = 20, width, height, className = '', ...props }) {
+  return <TbClipboardList size={width || height || size} className={className} {...props} />
 }
 
-export function IconMenu(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M18 4v16M18 4a3 3 0 0 0-3 3v4h3" {...stroke} />
-      <path d="M6 4v5a2.5 2.5 0 0 0 5 0V4M8.5 11.5V20M8.5 4v5" {...stroke} />
-    </svg>
-  )
+export function IconMenu({ size = 20, width, height, className = '', ...props }) {
+  return <LuUtensils size={width || height || size} className={className} {...props} />
 }
 
-export function IconUtensils(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M18 4v16M18 4a3 3 0 0 0-3 3v4h3" {...stroke} />
-      <path d="M6 4v5a2.5 2.5 0 0 0 5 0V4M8.5 11.5V20M8.5 4v5" {...stroke} />
-    </svg>
-  )
+export function IconUtensils({ size = 20, width, height, className = '', ...props }) {
+  return <LuUtensils size={width || height || size} className={className} {...props} />
 }
 
-export function IconInventory(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M4 8l8-4 8 4v8l-8 4-8-4V8z" {...stroke} />
-      <path d="M4 8l8 4 8-4M12 12v8" {...stroke} />
-    </svg>
-  )
+export function IconInventory({ size = 20, width, height, className = '', ...props }) {
+  return <LuPackage size={width || height || size} className={className} {...props} />
 }
 
-export function IconDispatch(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <circle cx="6.5" cy="16.5" r="3" {...stroke} />
-      <circle cx="17.5" cy="16.5" r="3" {...stroke} />
-      <path d="M6.5 16.5l3.5-7h4l2 4h1.5" {...stroke} />
-      <path d="M10 9.5h4.5" {...stroke} />
-    </svg>
-  )
+export function IconDispatch({ size = 20, width, height, className = '', ...props }) {
+  return <FaMotorcycle size={width || height || size} className={className} {...props} />
 }
 
-export function IconReports(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <rect x="4" y="13" width="3.5" height="7" rx="1.75" fill="currentColor" />
-      <rect x="10.25" y="5" width="3.5" height="15" rx="1.75" fill="currentColor" />
-      <rect x="16.5" y="9" width="3.5" height="11" rx="1.75" fill="currentColor" />
-    </svg>
-  )
+export function IconReports({ size = 20, width, height, className = '', ...props }) {
+  return <HiChartBar size={width || height || size} className={className} {...props} />
 }
 
-export function IconHelmet(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path
-        d="M12 4.5C6.8 4.5 3.5 8.5 3.5 13.5c0 2.2.7 4.1 2 5.5l.8.7h6.7c4 0 7.5-3.3 7.5-7.5C20.5 8 17 4.5 12 4.5z"
-        {...stroke}
-      />
-      <path
-        d="M4.5 13.5h7c1.1 0 2 .9 2 2v0c0 1.1-.9 2-2 2H6"
-        {...stroke}
-      />
-    </svg>
-  )
+export function IconHelmet({ size = 20, width, height, className = '', ...props }) {
+  return <MdSportsMotorsports size={width || height || size} className={className} {...props} />
 }
 
-export function IconCustomers(props) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <circle cx="9" cy="8" r="3" {...stroke} />
-      <path d="M3 19c0-3 2.5-5 6-5s6 2 6 5" {...stroke} />
-      <circle cx="17" cy="9" r="2.2" {...stroke} />
-      <path d="M21 19c0-2.2-1.5-3.8-4-4.2" {...stroke} />
-    </svg>
-  )
+export function IconCustomers({ size = 20, width, height, className = '', ...props }) {
+  return <LuUsers size={width || height || size} className={className} {...props} />
 }
 
-export function IconAccount(props) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <circle cx="12" cy="8" r="3.5" {...stroke} />
-      <path d="M5 20c1.5-3.5 4-5 7-5s5.5 1.5 7 5" {...stroke} />
-    </svg>
-  )
+export function IconAccount({ size = 20, width, height, className = '', ...props }) {
+  return <LuUser size={width || height || size} className={className} {...props} />
 }
 
 export function IconArchive(props) {
@@ -138,61 +90,28 @@ export function IconBlacklist(props) {
   )
 }
 
-export function IconBell(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M6 9a6 6 0 1 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13 6 9z" {...stroke} />
-      <path d="M10 18a2 2 0 0 0 4 0" {...stroke} />
-    </svg>
-  )
+export function IconBell({ size = 20, width, height, className = '', ...props }) {
+  return <LuBell size={width || height || size} className={className} {...props} />
 }
 
-export function IconCart(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M4 5h2l2.2 10.5a1.5 1.5 0 0 0 1.5 1.2h7.6a1.5 1.5 0 0 0 1.5-1.2L21 8H8" {...stroke} />
-      <circle cx="10" cy="20" r="1.2" fill="currentColor" stroke="none" />
-      <circle cx="18" cy="20" r="1.2" fill="currentColor" stroke="none" />
-    </svg>
-  )
+export function IconCart({ size = 20, width, height, className = '', ...props }) {
+  return <LuShoppingCart size={width || height || size} className={className} {...props} />
 }
 
-export function IconClipboard(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <rect x="6" y="4" width="12" height="17" rx="2" {...stroke} />
-      <path d="M9 4.5h6V6a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4.5z" {...stroke} />
-    </svg>
-  )
+export function IconClipboard({ size = 20, width, height, className = '', ...props }) {
+  return <TbClipboardList size={width || height || size} className={className} {...props} />
 }
 
-export function IconBike(props) {
-  return (
-    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
-      <circle cx="6.5" cy="16.5" r="3" {...stroke} />
-      <circle cx="17.5" cy="16.5" r="3" {...stroke} />
-      <path d="M6.5 16.5l3.5-7h4l2 4h1.5" {...stroke} />
-      <path d="M10 9.5h4.5" {...stroke} />
-    </svg>
-  )
+export function IconBike({ size = 20, width, height, className = '', ...props }) {
+  return <FaMotorcycle size={width || height || size} className={className} {...props} />
 }
 
-export function IconBox(props) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M4 8l8-4 8 4v8l-8 4-8-4V8z" {...stroke} />
-      <path d="M4 8l8 4 8-4M12 12v8" {...stroke} />
-    </svg>
-  )
+export function IconBox({ size = 20, width, height, className = '', ...props }) {
+  return <LuPackage size={width || height || size} className={className} {...props} />
 }
 
-export function IconUser(props) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <circle cx="12" cy="8" r="3.5" {...stroke} />
-      <path d="M5 19c1.2-3.2 3.5-4.8 7-4.8s5.8 1.6 7 4.8" {...stroke} />
-    </svg>
-  )
+export function IconUser({ size = 18, width, height, className = '', ...props }) {
+  return <LuUser size={width || height || size} className={className} {...props} />
 }
 
 export function IconShield(props) {
@@ -203,16 +122,8 @@ export function IconShield(props) {
   )
 }
 
-export function IconGear(props) {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <circle cx="12" cy="12" r="3" {...stroke} />
-      <path
-        d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"
-        {...stroke}
-      />
-    </svg>
-  )
+export function IconGear({ size = 20, width, height, className = '', ...props }) {
+  return <LuSettings size={width || height || size} className={className} {...props} />
 }
 
 export function IconChevron(props) {
@@ -472,13 +383,8 @@ export function IconId(props) {
   )
 }
 
-export function IconLogout(props) {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M10 5H6a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h4" {...stroke} />
-      <path d="M14 16l5-4-5-4M19 12H10" {...stroke} />
-    </svg>
-  )
+export function IconLogout({ size = 18, width, height, className = '', ...props }) {
+  return <LuLogOut size={width || height || size} className={className} {...props} />
 }
 
 export function IconFilter(props) {

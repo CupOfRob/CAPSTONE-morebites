@@ -13,19 +13,34 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $credentials = $request->validate([
-            'email' => ['required', 'email'],
+            'email' => ['required', 'string'],
             'password' => ['required', 'string'],
         ]);
 
         $user = User::query()
-            ->where('email', $credentials['email'])
+            ->where(function ($query) use ($credentials) {
+                $query->where('email', $credentials['email'])
+                      ->orWhere('username', $credentials['email']);
+            })
             ->whereIn('role', ['super_admin', 'admin', 'cashier'])
             ->whereNull('archived_at')
             ->first();
 
-        if (! $user || ! Hash::check($credentials['password'], $user->password)) {
+        if (! $user) {
             throw ValidationException::withMessages([
-                'email' => ['Invalid credentials.'],
+                'email' => ['Account not found.'],
+            ]);
+        }
+
+        if ($user->status === 'inactive') {
+            throw ValidationException::withMessages([
+                'email' => ['This account is inactive.'],
+            ]);
+        }
+
+        if (! Hash::check($credentials['password'], $user->password)) {
+            throw ValidationException::withMessages([
+                'password' => ['Incorrect password.'],
             ]);
         }
 

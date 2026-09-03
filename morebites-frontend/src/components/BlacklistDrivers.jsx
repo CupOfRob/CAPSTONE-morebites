@@ -1,5 +1,13 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  LuSearch,
+  LuChevronLeft,
+  LuChevronRight,
+  LuX,
+  LuEye,
+  LuPencil,
+} from 'react-icons/lu'
+import {
   IconCalendar,
   IconClose,
   IconDownload,
@@ -70,17 +78,19 @@ export default function BlacklistDrivers({ embedded = false }) {
         </header>
       ) : null}
 
-      <div className="bl-search sa-card">
-        <IconSearch />
-        <input
-          type="search"
-          placeholder="Search driver name, ID, or reason..."
-          value={search}
-          onChange={(e) => {
-            setSearch(e.target.value)
-            setPage(1)
-          }}
-        />
+      <div className="bl-search-wrap">
+        <div className="bl-search">
+          <LuSearch size={15} />
+          <input
+            type="search"
+            placeholder="Search driver name, ID, or reason..."
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value)
+              setPage(1)
+            }}
+          />
+        </div>
       </div>
 
       <section className="bl-table-card sa-card">
@@ -94,7 +104,7 @@ export default function BlacklistDrivers({ embedded = false }) {
                 <th>Reason for Blacklist</th>
                 <th>Date Blacklisted</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th style={{ textAlign: 'right' }}>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -108,9 +118,10 @@ export default function BlacklistDrivers({ embedded = false }) {
                   <td>
                     <span className="bl-badge">Blacklisted</span>
                   </td>
-                  <td>
+                  <td style={{ textAlign: 'right' }}>
                     <button type="button" className="bl-view" onClick={() => openDetails(d)}>
-                      View
+                      <LuEye size={13} />
+                      <span>View</span>
                     </button>
                   </td>
                 </tr>
@@ -119,12 +130,25 @@ export default function BlacklistDrivers({ embedded = false }) {
           </table>
         </div>
         <div className="bl-pagination">
+          <span className="bl-pagination-info">
+            Showing {(currentPage - 1) * pageSize + (filtered.length ? 1 : 0)} to{' '}
+            {Math.min(currentPage * pageSize, filtered.length)} of {filtered.length} drivers
+          </span>
           <div className="bl-pages">
+            <button
+              type="button"
+              className="bl-page-btn arrow"
+              disabled={currentPage <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              aria-label="Previous page"
+            >
+              <LuChevronLeft size={16} />
+            </button>
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
               <button
                 key={n}
                 type="button"
-                className={n === currentPage ? 'active' : ''}
+                className={`bl-page-btn${n === currentPage ? ' active' : ''}`}
                 onClick={() => setPage(n)}
               >
                 {n}
@@ -132,10 +156,12 @@ export default function BlacklistDrivers({ embedded = false }) {
             ))}
             <button
               type="button"
+              className="bl-page-btn arrow"
               disabled={currentPage >= totalPages}
               onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              aria-label="Next page"
             >
-              {'>'}
+              <LuChevronRight size={16} />
             </button>
           </div>
         </div>
@@ -147,8 +173,8 @@ export default function BlacklistDrivers({ embedded = false }) {
           <aside className="bl-drawer" role="dialog" aria-modal="true" aria-label="Driver Details">
             <div className="bl-drawer-head">
               <h2>Driver Details</h2>
-              <button type="button" className="bl-icon-btn" onClick={() => setSelected(null)} aria-label="Close">
-                <IconClose />
+              <button type="button" className="bl-modal-close-circle" onClick={() => setSelected(null)} aria-label="Close">
+                <LuX size={18} />
               </button>
             </div>
 

@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react'
 import {
+  LuPlus,
+  LuX,
+  LuShield,
+  LuCar,
+  LuUserCheck,
+  LuUser,
+  LuTriangleAlert,
+  LuPencil,
+} from 'react-icons/lu'
+import {
   IconClose,
   IconEdit,
   IconImage,
@@ -344,16 +354,25 @@ export default function AccountManagement() {
       <>
       <section className="ac-stats ac-stats-3">
         <article className="ac-stat sa-card">
-          <div className="ac-stat-label">Active Admins</div>
-          <div className="ac-stat-value">{admins.length}</div>
+          <div className="ac-stat-icon blue"><LuShield size={20} /></div>
+          <div>
+            <div className="ac-stat-label">Active Admins</div>
+            <div className="ac-stat-value">{admins.length}</div>
+          </div>
         </article>
         <article className="ac-stat sa-card">
-          <div className="ac-stat-label">Active Drivers</div>
-          <div className="ac-stat-value">{drivers.length}</div>
+          <div className="ac-stat-icon green"><LuCar size={20} /></div>
+          <div>
+            <div className="ac-stat-label">Active Drivers</div>
+            <div className="ac-stat-value">{drivers.length}</div>
+          </div>
         </article>
         <article className="ac-stat sa-card">
-          <div className="ac-stat-label">Active Cashiers</div>
-          <div className="ac-stat-value">{cashiers.length}</div>
+          <div className="ac-stat-icon yellow"><LuUserCheck size={20} /></div>
+          <div>
+            <div className="ac-stat-label">Active Cashiers</div>
+            <div className="ac-stat-value">{cashiers.length}</div>
+          </div>
         </article>
       </section>
 
@@ -361,7 +380,7 @@ export default function AccountManagement() {
         <div className="ac-section-head">
           <h2>Admins</h2>
           <button type="button" className="ac-btn-primary" onClick={() => { setFormError(''); setAddAdmin(true) }}>
-            <IconPlus /> Add Admin
+            <LuPlus size={16} /> Add Admin
           </button>
         </div>
         <div className="ac-table-wrap">
@@ -408,7 +427,7 @@ export default function AccountManagement() {
         <div className="ac-section-head">
           <h2>Drivers</h2>
           <button type="button" className="ac-btn-primary" onClick={() => { setFormError(''); setAddDriver(true) }}>
-            <IconPlus /> Add Driver
+            <LuPlus size={16} /> Add Driver
           </button>
         </div>
         <div className="ac-table-wrap">
@@ -457,7 +476,7 @@ export default function AccountManagement() {
         <div className="ac-section-head">
           <h2>Cashiers</h2>
           <button type="button" className="ac-btn-primary" onClick={() => { setFormError(''); setAddCashier(true) }}>
-            <IconPlus /> Add Cashier
+            <LuPlus size={16} /> Add Cashier
           </button>
         </div>
         <div className="ac-table-wrap">
@@ -550,12 +569,12 @@ export default function AccountManagement() {
           <div className="ac-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="ac-modal-head">
               <h2>Add New Admin</h2>
-              <button type="button" className="ac-icon-btn" onClick={() => setAddAdmin(false)} aria-label="Close">
-                <IconClose />
+              <button type="button" className="ac-modal-close-circle" onClick={() => setAddAdmin(false)} aria-label="Close">
+                <LuX size={18} />
               </button>
             </div>
             <div className="ac-upload-circle">
-              <IconUser />
+              <LuUser size={24} />
               <span>Upload Photo</span>
             </div>
             <div className="ac-form-grid">
@@ -608,12 +627,12 @@ export default function AccountManagement() {
           <div className="ac-modal ac-wide" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="ac-modal-head">
               <h2>Add New Driver</h2>
-              <button type="button" className="ac-icon-btn" onClick={() => setAddDriver(false)} aria-label="Close">
-                <IconClose />
+              <button type="button" className="ac-modal-close-circle" onClick={() => setAddDriver(false)} aria-label="Close">
+                <LuX size={18} />
               </button>
             </div>
             <div className="ac-upload-circle">
-              <IconUser />
+              <LuUser size={24} />
               <span>Upload Photo</span>
             </div>
             <div className="ac-form-grid">
@@ -686,12 +705,12 @@ export default function AccountManagement() {
           <div className="ac-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="ac-modal-head">
               <h2>Add New Cashier</h2>
-              <button type="button" className="ac-icon-btn" onClick={() => setAddCashier(false)} aria-label="Close">
-                <IconClose />
+              <button type="button" className="ac-modal-close-circle" onClick={() => setAddCashier(false)} aria-label="Close">
+                <LuX size={18} />
               </button>
             </div>
             <div className="ac-upload-circle">
-              <IconUser />
+              <LuUser size={24} />
               <span>Upload Photo</span>
             </div>
             <div className="ac-form-grid">
@@ -749,16 +768,16 @@ export default function AccountManagement() {
                 <span className="ac-status-dot">Active</span>
               </div>
               <div className="ac-drawer-actions">
-                <button type="button" className="ac-icon-btn" onClick={() => (editing ? saveProfileEdits() : setEditing(true))} aria-label="Edit">
-                  <IconEdit />
+                <button type="button" className="ac-modal-close-circle" onClick={() => (editing ? saveProfileEdits() : setEditing(true))} aria-label="Edit">
+                  <LuPencil size={15} />
                 </button>
-                <button type="button" className="ac-icon-btn" onClick={() => setProfile(null)} aria-label="Close">
-                  <IconClose />
+                <button type="button" className="ac-modal-close-circle" onClick={() => setProfile(null)} aria-label="Close">
+                  <LuX size={18} />
                 </button>
               </div>
             </div>
             <div className="ac-drawer-photo">
-              <IconUser />
+              <LuUser size={40} />
             </div>
             <dl className="ac-profile-list">
               {[
@@ -826,23 +845,30 @@ export default function AccountManagement() {
       {blockTarget && (
         <div className="ac-backdrop" onClick={() => setBlockTarget(null)} role="presentation">
           <div className="ac-modal ac-block" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
-            <div className="ac-block-title">
-              <IconWarning />
-              <h2>Blocklisted</h2>
+            <div className="ac-modal-head" style={{ borderBottom: 'none', paddingBottom: 0 }}>
+              <div className="ac-block-title">
+                <LuTriangleAlert size={22} color="#EF4444" />
+                <h2>Blocklist</h2>
+              </div>
+              <button type="button" className="ac-modal-close-circle" onClick={() => setBlockTarget(null)} aria-label="Close">
+                <LuX size={18} />
+              </button>
             </div>
-            <p>Reason for blocklisting:</p>
-            <div className="ac-radios">
-              {BLOCK_REASONS.map((r) => (
-                <label key={r}>
-                  <input
-                    type="radio"
-                    name="block-reason"
-                    checked={blockReason === r}
-                    onChange={() => setBlockReason(r)}
-                  />
-                  {r}
-                </label>
-              ))}
+            <div style={{ padding: '0 24px 20px' }}>
+              <p style={{ margin: '8px 0 14px', fontSize: 14, color: '#4B5563' }}>Reason for blocklisting:</p>
+              <div className="ac-radios">
+                {BLOCK_REASONS.map((r) => (
+                  <label key={r}>
+                    <input
+                      type="radio"
+                      name="block-reason"
+                      checked={blockReason === r}
+                      onChange={() => setBlockReason(r)}
+                    />
+                    {r}
+                  </label>
+                ))}
+              </div>
             </div>
             <div className="ac-modal-foot">
               <button type="button" className="ac-btn-cancel" onClick={() => setBlockTarget(null)}>Cancel</button>

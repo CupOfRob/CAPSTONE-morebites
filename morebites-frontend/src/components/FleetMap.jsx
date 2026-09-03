@@ -23,10 +23,27 @@ export default function FleetMap({
   store,
   deliveries = [],
   focusId = null,
+  isFullscreen = false,
 }) {
   const containerRef = useRef(null)
   const mapRef = useRef(null)
   const layerRef = useRef(null)
+
+  useEffect(() => {
+    const map = mapRef.current
+    if (!map) return
+
+    map.invalidateSize()
+    const t1 = setTimeout(() => map.invalidateSize(), 50)
+    const t2 = setTimeout(() => map.invalidateSize(), 150)
+    const t3 = setTimeout(() => map.invalidateSize(), 300)
+
+    return () => {
+      clearTimeout(t1)
+      clearTimeout(t2)
+      clearTimeout(t3)
+    }
+  }, [isFullscreen])
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return
@@ -128,5 +145,5 @@ export default function FleetMap({
     setTimeout(() => map.invalidateSize(), 50)
   }, [deliveries, store, focusId])
 
-  return <div className="fm-map" ref={containerRef} />
+  return <div className={`fm-map${isFullscreen ? ' fm-fullscreen' : ''}`} ref={containerRef} />
 }

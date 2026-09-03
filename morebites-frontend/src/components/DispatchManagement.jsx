@@ -31,6 +31,17 @@ export default function DispatchManagement() {
   const [viewDelivery, setViewDelivery] = useState(null)
   const [focusId, setFocusId] = useState(null)
   const [rider, setRider] = useState('')
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        setIsFullscreen(false)
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
 
   async function loadDispatch() {
     const r = await dispatchApi.get()
@@ -170,17 +181,38 @@ export default function DispatchManagement() {
                 <p>Real-time view of customer location, rider location, and route.</p>
               </div>
             </div>
+            <button
+              type="button"
+              className="dp-fullscreen-toggle"
+              onClick={() => setIsFullscreen((v) => !v)}
+              aria-label={isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+              title={isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+            >
+              {isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+            </button>
           </div>
-          <div className="dp-map dp-map-live">
+          <div className={`dp-map dp-map-live${isFullscreen ? ' dp-map-fullscreen' : ''}`}>
             <FleetMap
               store={fleet.store}
               deliveries={fleet.deliveries}
               focusId={focusId}
+              isFullscreen={isFullscreen}
             />
             <div className="dp-legend">
               <span><i className="dot red" /> Customer Location</span>
               <span><i className="dot blue" /> Rider Location</span>
               <span><i className="line" /> Delivery Route</span>
+            </div>
+            <div className="dp-zoom">
+              <button
+                type="button"
+                className="dp-fullscreen-btn"
+                onClick={() => setIsFullscreen((v) => !v)}
+                aria-label={isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+                title={isFullscreen ? 'Exit Full Screen' : 'Full Screen'}
+              >
+                {isFullscreen ? '✕' : '⛶'}
+              </button>
             </div>
           </div>
           <div className="dp-map-foot">

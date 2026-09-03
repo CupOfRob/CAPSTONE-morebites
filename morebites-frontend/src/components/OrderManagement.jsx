@@ -17,7 +17,8 @@ import { MoreButton, RowActionMenuPopup, useRowActionMenu } from './RowActionMen
 import './OrderManagement.css'
 
 const STATUS_OPTIONS = ['All', 'Pending', 'Preparing', 'Ready', 'Out for Delivery', 'Completed', 'Cancelled']
-const TYPE_OPTIONS = ['All', 'Online Order', 'Walk-in', 'Takeout', 'Dine-in', 'Room Service']
+const TYPE_OPTIONS = ['All', 'Online Order', 'Dine-in', 'Takeout']
+const POS_ORDER_TYPES = ['Dine-in', 'Takeout']
 const DATE_OPTIONS = ['Today', 'This Week', 'This Month']
 const MENU_TABS = ['All', 'Pizza', 'Pasta', 'Sides', 'Drinks', 'Desserts']
 
@@ -127,6 +128,7 @@ function CreateOrderModal({ orderId, onClose, onPlace, menuCatalog = [] }) {
     onPlace({
       customer_name: customerName.trim(),
       order_type: orderType,
+      status: 'Preparing',
       items: cart.map((c) => ({
         name: c.name,
         menu_item_id: c.id,
@@ -248,7 +250,7 @@ function CreateOrderModal({ orderId, onClose, onPlace, menuCatalog = [] }) {
               </button>
               {typeOpen && (
                 <div className="om-filter-menu om-type-menu">
-                  {TYPE_OPTIONS.filter((t) => t !== 'All').map((opt) => (
+                  {POS_ORDER_TYPES.map((opt) => (
                     <button
                       key={opt}
                       type="button"

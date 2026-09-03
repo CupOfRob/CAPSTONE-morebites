@@ -13,6 +13,136 @@ function peso(n) {
   return `₱ ${Number(n).toLocaleString('en-PH')}`
 }
 
+function downloadBlob(blob, filename) {
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  URL.revokeObjectURL(url)
+}
+
+function escapeXml(str) {
+  return String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;')
+}
+
+function exportCsv(filename, headers, rows) {
+  const lines = rows.map((row) =>
+    row.map((cell) => `"${String(cell ?? '').replace(/"/g, '""')}"`).join(','),
+  )
+  const blob = new Blob([[headers.join(','), ...lines].join('\n')], {
+    type: 'text/csv;charset=utf-8;',
+  })
+  downloadBlob(blob, filename)
+}
+
+async function exportXlsx(filename, title, headers, rows) {
+  if (typeof window !== 'undefined' && window.XLSX) {
+    const ws = window.XLSX.utils.aoa_to_sheet([headers, ...rows])
+    const wb = window.XLSX.utils.book_new()
+    window.XLSX.utils.book_append_sheet(wb, ws, 'Report')
+    window.XLSX.writeFile(wb, filename)
+    return
+  }
+
+  const xml = `<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Worksheet ss:Name="Report">
+  <Table>
+   <Row>
+    ${headers.map((h) => `<Cell><Data ss:Type="String">${escapeXml(h)}</Data></Cell>`).join('')}
+   </Row>
+   ${rows
+     .map(
+       (r) =>
+         `<Row>${r
+           .map((cell) => `<Cell><Data ss:Type="String">${escapeXml(cell)}</Data></Cell>`)
+           .join('')}</Row>`,
+     )
+     .join('\n   ')}
+  </Table>
+ </Worksheet>
+</Workbook>`
+  const blob = new Blob([xml], {
+    type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;charset=utf-8;',
+  })
+  downloadBlob(blob, filename)
+}
+
+async function exportPdf(filename, title, headers, rows) {
+  if (typeof window !== 'undefined' && (window.jsPDF || window.jspdf?.jsPDF)) {
+    const JsPdf = window.jsPDF || window.jspdf.jsPDF
+    const doc = new JsPdf()
+    doc.text(title, 14, 16)
+    let y = 26
+    doc.text(headers.join('  |  '), 14, y)
+    y += 8
+    rows.slice(0, 30).forEach((r) => {
+      if (y > 280) {
+        doc.addPage()
+        y = 20
+      }
+      doc.text(r.join('  |  '), 14, y)
+      y += 7
+    })
+    doc.save(filename)
+    return
+  }
+
+  const lines = [
+    title,
+    `Generated: ${new Date().toLocaleString()}`,
+    '',
+    headers.join(' | '),
+    '-'.repeat(Math.min(80, headers.join(' | ').length)),
+    ...rows.map((r) => r.join(' | ')),
+  ]
+
+  const pdfStream = [
+    'BT',
+    '/F1 10 Tf',
+    '40 760 Td',
+    '14 TL',
+    ...lines.map((l) => `(${String(l).replace(/[()\\]/g, '\\$&')}) '`),
+    'ET',
+  ].join('\n')
+
+  const pdfBody = [
+    '%PDF-1.4',
+    '1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj',
+    '2 0 obj << /Type /Pages /Kids [3 0 R] /Count 1 >> endobj',
+    '3 0 obj << /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >> endobj',
+    `4 0 obj << /Length ${pdfStream.length} >> stream\n${pdfStream}\nendstream endobj`,
+    '5 0 obj << /Type /Font /Subtype /Type1 /BaseFont /Helvetica >> endobj',
+    'xref',
+    '0 6',
+    '0000000000 65535 f ',
+    '0000000009 00000 n ',
+    '0000000058 00000 n ',
+    '0000000115 00000 n ',
+    '0000000244 00000 n ',
+    '0000000350 00000 n ',
+    'trailer << /Size 6 /Root 1 0 R >>',
+    'startxref',
+    '450',
+    '%%EOF',
+  ].join('\n')
+
+  const blob = new Blob([pdfBody], { type: 'application/pdf' })
+  downloadBlob(blob, filename)
+}
+
 export default function RecordsReports() {
   const [allRecords, setAllRecords] = useState([])
   const [deliveryRecords, setDeliveryRecords] = useState([])
@@ -57,36 +187,117 @@ export default function RecordsReports() {
   const [exportAs, setExportAs] = useState('PDF')
   const [page, setPage] = useState(1)
 
+  function getReportData(formatType, periodValue) {
+    if (formatType === 'Sales Per Delivery Person') {
+      const headers = ['Order ID', 'Driver Name', 'Date & Time', 'Delivery Time', 'Distance', 'Status']
+      const rows = deliveryRecords.map((r) => [
+        r.id,
+        r.driver,
+        r.datetime,
+        r.time,
+        r.distance,
+        r.status,
+      ])
+      return { title: `Sales Per Delivery Person (${periodValue})`, headers, rows }
+    }
+
+    if (formatType === 'Full Report') {
+      const headers = ['Order ID', 'Customer Name', 'Date & Time', 'Order Type', 'Total Amount', 'Payment Method', 'Status']
+      const rows = allRecords.map((r) => [
+        r.id,
+        r.customer,
+        r.datetime,
+        r.type,
+        peso(r.amount),
+        r.payment,
+        r.status,
+      ])
+      return { title: `Full Sales Report (${periodValue})`, headers, rows }
+    }
+
+    const headers = ['Order ID', 'Customer Name', 'Date & Time', 'Order Type', 'Total Amount', 'Payment Method', 'Status']
+    const rows = allRecords.map((r) => [
+      r.id,
+      r.customer,
+      r.datetime,
+      r.type,
+      peso(r.amount),
+      r.payment,
+      r.status,
+    ])
+    return { title: `Sales Summary Report (${periodValue})`, headers, rows }
+  }
+
+  function handleCancel() {
+    setPeriod('Weekly')
+    setFormat('Sales Summary Report')
+    setExportAs('PDF')
+    setGenerateOpen(false)
+  }
+
+  async function triggerFileDownload(fileName, formatType, periodValue, exportType) {
+    const { title, headers, rows: reportRows } = getReportData(formatType, periodValue)
+    const normalizedExport = (exportType || 'PDF').toUpperCase()
+    if (normalizedExport === 'CSV') {
+      exportCsv(fileName, headers, reportRows)
+    } else if (normalizedExport === 'PDF') {
+      await exportPdf(fileName, title, headers, reportRows)
+    } else {
+      await exportXlsx(fileName, title, headers, reportRows)
+    }
+  }
+
   async function generateReport() {
+    const selectedPeriod = period
+    const selectedFormat = format
+    const selectedExportAs = exportAs
+    const ext = selectedExportAs.toLowerCase() === 'csv' ? 'csv' : selectedExportAs.toLowerCase() === 'pdf' ? 'pdf' : 'xlsx'
+    const fallbackName = `${selectedFormat.replace(/\s+/g, '_')}_${selectedPeriod}.${ext}`
+
+    let report = null
     try {
       const { data } = await reportsApi.generate({
-        period,
-        format_type: format,
-        export_as: exportAs,
+        period: selectedPeriod,
+        format_type: selectedFormat,
+        export_as: selectedExportAs,
       })
-      const report = data?.data || data
+      report = data?.data || data
+    } catch (err) {
+      console.warn('Backend generate call error, proceeding with download:', err)
+    }
+
+    const fileName = report?.name || fallbackName
+
+    try {
+      await triggerFileDownload(fileName, selectedFormat, selectedPeriod, selectedExportAs)
+
       setExportsList((prev) => [
         {
-          id: report.id,
-          name: report.name,
-          date: report.created_at
+          id: report?.id || Date.now(),
+          name: fileName,
+          date: report?.created_at
             ? new Date(report.created_at).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric',
               })
             : 'Today',
-          size: report.size || '1.2 MB',
-          format: report.format || exportAs,
+          size: report?.size || '1.2 MB',
+          format: selectedExportAs,
         },
         ...prev,
       ])
-      setGenerateOpen(false)
+      handleCancel()
       setExportsOpen(true)
     } catch (err) {
       console.error(err)
-      alert(err.response?.data?.message || 'Failed to generate report.')
+      alert(err.message || 'Failed to generate report.')
     }
+  }
+
+  function handleDownloadExport(file) {
+    const ext = file.name.split('.').pop()?.toUpperCase() || file.format?.toUpperCase() || 'PDF'
+    triggerFileDownload(file.name, 'Sales Summary Report', 'Weekly', ext).catch(console.error)
   }
   const pageSize = 5
 
@@ -281,7 +492,12 @@ export default function RecordsReports() {
                   <strong>{file.name}</strong>
                   <span>{file.date}</span>
                 </div>
-                <button type="button" className="rr-icon-btn" aria-label="Download">
+                <button
+                  type="button"
+                  className="rr-icon-btn"
+                  aria-label="Download"
+                  onClick={() => handleDownloadExport(file)}
+                >
                   <IconDownload />
                 </button>
               </li>
@@ -291,11 +507,11 @@ export default function RecordsReports() {
       </div>
 
       {generateOpen && (
-        <div className="rr-backdrop" onClick={() => setGenerateOpen(false)} role="presentation">
+        <div className="rr-backdrop" onClick={handleCancel} role="presentation">
           <div className="rr-modal" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true">
             <div className="rr-modal-head">
               <h2>Generate Sales Report</h2>
-              <button type="button" className="rr-icon-btn" onClick={() => setGenerateOpen(false)} aria-label="Close">
+              <button type="button" className="rr-icon-btn" onClick={handleCancel} aria-label="Close">
                 <IconClose />
               </button>
             </div>
@@ -326,15 +542,30 @@ export default function RecordsReports() {
               <label>
                 Export As
                 <select value={exportAs} onChange={(e) => setExportAs(e.target.value)}>
-                  <option>PDF</option>
-                  <option>Excel</option>
+                  <option value="PDF">PDF</option>
+                  <option value="CSV">CSV</option>
+                  <option value="XLSX">XLSX</option>
                 </select>
               </label>
             </div>
             <div className="rr-modal-foot">
-              <button type="button" className="rr-btn-ghost" onClick={() => setGenerateOpen(false)}>Close</button>
-              <button type="button" className="rr-btn-primary" onClick={generateReport}>
-                Generate Report
+              <button
+                type="button"
+                className="rr-btn-ghost"
+                onClick={handleCancel}
+                aria-label="Cancel"
+                title="Cancel"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="rr-btn-primary"
+                onClick={generateReport}
+                aria-label="Generate & Download"
+                title="Generate & Download"
+              >
+                Generate & Download
               </button>
             </div>
           </div>
@@ -399,7 +630,14 @@ export default function RecordsReports() {
                     <strong>{file.name}</strong>
                     <span>{file.size} · {file.date}</span>
                   </div>
-                  <button type="button" className="rr-icon-btn" aria-label="Download"><IconDownload /></button>
+                  <button
+                    type="button"
+                    className="rr-icon-btn"
+                    aria-label="Download"
+                    onClick={() => handleDownloadExport(file)}
+                  >
+                    <IconDownload />
+                  </button>
                   <button type="button" className="rr-icon-btn danger" aria-label="Delete"><IconTrash /></button>
                 </li>
               ))}

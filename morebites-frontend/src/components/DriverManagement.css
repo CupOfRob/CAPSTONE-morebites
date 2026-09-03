@@ -175,9 +175,11 @@
 }
 
 .dm-pages button:disabled { opacity: 0.4; cursor: not-allowed; }
-.dm-pages button.active {
+.dm-pages button.active,
+.dm-pages button:not(:disabled):hover {
   background: var(--sa-accent);
   border-color: var(--sa-accent);
+  color: #fff;
 }
 
 .dm-backdrop {

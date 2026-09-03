@@ -94,7 +94,7 @@
   border: none;
   border-radius: 7px;
   background: var(--sa-accent);
-  color: #1a1a1a;
+  color: #fff;
   font-size: 11px;
   font-weight: 700;
   cursor: pointer;
@@ -117,9 +117,11 @@
   cursor: pointer;
 }
 
-.dp-pages button.active {
+.dp-pages button.active,
+.dp-pages button:not(:disabled):hover {
   background: var(--sa-accent);
   border-color: var(--sa-accent);
+  color: #fff;
 }
 
 .dp-grid {

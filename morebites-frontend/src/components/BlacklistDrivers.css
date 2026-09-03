@@ -97,9 +97,11 @@
 }
 
 .bl-pages button:disabled { opacity: 0.4; cursor: not-allowed; }
-.bl-pages button.active {
+.bl-pages button.active,
+.bl-pages button:not(:disabled):hover {
   background: var(--sa-accent);
   border-color: var(--sa-accent);
+  color: #fff;
 }
 
 .bl-backdrop {

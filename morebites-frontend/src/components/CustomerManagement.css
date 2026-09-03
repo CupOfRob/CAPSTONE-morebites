@@ -200,9 +200,11 @@
   cursor: pointer;
 }
 
-.cm-pages button.active {
+.cm-pages button.active,
+.cm-pages button:not(:disabled):hover {
   background: var(--sa-accent);
   border-color: var(--sa-accent);
+  color: #fff;
 }
 
 .cm-backdrop {
@@ -381,7 +383,7 @@
   border: none;
   border-radius: 8px;
   background: var(--sa-accent);
-  color: #1a1a1a;
+  color: #fff;
   font-weight: 800;
   display: inline-flex;
   align-items: center;

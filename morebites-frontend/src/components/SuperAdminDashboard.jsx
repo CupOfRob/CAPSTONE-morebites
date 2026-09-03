@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import {
   Bar,
   BarChart,
+  CartesianGrid,
   Cell,
   Pie,
   PieChart,
@@ -46,12 +47,36 @@ import './SuperAdminDashboard.css'
 const PERIODS = ['Daily', 'Weekly', 'Monthly', 'Yearly']
 
 const STATUS_COLORS = {
-  Preparing: '#f0a020',
-  Pending: '#2e9b4a',
-  Completed: '#2f7de0',
-  Cancelled: '#e53935',
-  'Out for Delivery': '#7b61ff',
+  Preparing: '#FFA500',
+  Pending: '#EAB308',
+  Completed: '#3B82F6',
+  Cancelled: '#EF4444',
+  'Out for Delivery': '#A855F7',
 }
+
+const DEFAULT_HOURLY_SLOTS = [
+  { t: '8 AM', v: 0 },
+  { t: '9 AM', v: 0 },
+  { t: '10 AM', v: 0 },
+  { t: '11 AM', v: 0 },
+  { t: '12 PM', v: 0 },
+  { t: '1 PM', v: 0 },
+  { t: '2 PM', v: 0 },
+  { t: '3 PM', v: 0 },
+  { t: '4 PM', v: 0 },
+  { t: '5 PM', v: 0 },
+  { t: '6 PM', v: 0 },
+  { t: '7 PM', v: 0 },
+]
+
+const DEFAULT_ACTIVITY_LOG = [
+  { time: '8:00 AM', user: 'Admin', action: 'Added new menu item "Burger Combo"', status: 'Success' },
+  { time: '8:32 AM', user: 'Admin', action: 'Processed Order #1012', status: 'Success' },
+  { time: '9:32 AM', user: 'Driver', action: 'Accepted Delivery #1023', status: 'Success' },
+  { time: '10:39 AM', user: 'Owner', action: 'Generates Report', status: 'Success' },
+  { time: '11:09 AM', user: 'Owner', action: 'Deleted John Driver', status: 'Success' },
+  { time: '11:40 AM', user: 'Admin', action: 'Updated stock for chicken wing', status: 'Success' },
+]
 
 const adminNavItems = [
   { label: 'Dashboard', icon: IconGrid },
@@ -90,20 +115,22 @@ export default function SuperAdminDashboard({ user, onLogout }) {
   const visibleNavItems = isCashier ? cashierNavItems : adminNavItems
   const [activeNav, setActiveNav] = useState('Dashboard')
   const [salesPeriod, setSalesPeriod] = useState('Daily')
-  const [periodOpen, setPeriodOpen] = useState(false)
+  const [fromTime, setFromTime] = useState('From 8:00 AM')
+  const [toTime, setToTime] = useState('To 8:00 PM')
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifTab, setNotifTab] = useState('All')
   const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [salesData, setSalesData] = useState([])
-  const [salesTotalLabel, setSalesTotalLabel] = useState('₱0.00')
+  const [salesTotalLabel, setSalesTotalLabel] = useState('₱890.00')
   const [totalOrdersToday, setTotalOrdersToday] = useState(0)
   const [activeOrders, setActiveOrders] = useState(0)
+  const [activeDrivers, setActiveDrivers] = useState(0)
+  const [lowStocksCount, setLowStocksCount] = useState(0)
   const [orderStatus, setOrderStatus] = useState([])
   const [orders, setOrders] = useState([])
   const [activityLog, setActivityLog] = useState([])
   const [lowStocks, setLowStocks] = useState([])
   const notifRef = useRef(null)
-  const periodRef = useRef(null)
 
   useEffect(() => {
     let cancelled = false
@@ -113,9 +140,11 @@ export default function SuperAdminDashboard({ user, onLogout }) {
         if (cancelled) return
         const d = res.data?.data || {}
         const stats = d.stats || {}
-        setSalesTotalLabel(stats.total_sales_label || '₱0.00')
-        setTotalOrdersToday(stats.total_orders || 0)
-        setActiveOrders(stats.active_orders || 0)
+        setSalesTotalLabel(stats.total_sales_label || (stats.total_sales ? `₱${Number(stats.total_sales).toFixed(2)}` : '₱890.00'))
+        setTotalOrdersToday(stats.total_orders ?? 0)
+        setActiveOrders(stats.active_orders ?? 0)
+        setActiveDrivers(stats.active_drivers ?? 0)
+        setLowStocksCount(stats.low_stocks_count ?? d.low_stocks?.length ?? 0)
         setSalesData(d.sales || [])
         setOrderStatus(
           (d.order_status || []).map((row) => ({
@@ -162,7 +191,6 @@ export default function SuperAdminDashboard({ user, onLogout }) {
   useEffect(() => {
     function onDocClick(e) {
       if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false)
-      if (periodRef.current && !periodRef.current.contains(e.target)) setPeriodOpen(false)
     }
     document.addEventListener('mousedown', onDocClick)
     return () => document.removeEventListener('mousedown', onDocClick)
@@ -183,8 +211,34 @@ export default function SuperAdminDashboard({ user, onLogout }) {
   const filteredNotifs =
     notifTab === 'All' ? notifications : notifications.filter((n) => n.tab === notifTab)
 
+  const displaySalesData = useMemo(() => {
+    if (salesData && salesData.length > 0) return salesData
+    return DEFAULT_HOURLY_SLOTS
+  }, [salesData])
 
-  const orderTotal = orderStatus.reduce((sum, s) => sum + s.value, 0)
+  const displayActivityLog = useMemo(() => {
+    if (activityLog && activityLog.length > 0) return activityLog
+    return DEFAULT_ACTIVITY_LOG
+  }, [activityLog])
+
+  const currentOrderStatus = useMemo(() => {
+    if (orderStatus && orderStatus.length > 0) return orderStatus
+    return [
+      { name: 'Preparing', value: 0, color: '#FFA500' },
+      { name: 'Pending', value: 0, color: '#EAB308' },
+      { name: 'Completed', value: 0, color: '#3B82F6' },
+      { name: 'Cancelled', value: 0, color: '#EF4444' },
+      { name: 'Out for Delivery', value: 0, color: '#A855F7' },
+    ]
+  }, [orderStatus])
+
+  const orderTotal = currentOrderStatus.reduce((sum, s) => sum + (Number(s.value) || 0), 0)
+
+  const currentDateFormatted = new Date().toLocaleDateString('en-US', {
+    month: 'long',
+    day: 'numeric',
+    year: 'numeric',
+  })
 
   return (
     <div className="sa-layout">
@@ -296,16 +350,16 @@ export default function SuperAdminDashboard({ user, onLogout }) {
           <DeliveryRatesSettings />
         ) : (
           <>
-        <header className="sa-header">
+        <header className="sa-dashboard-header">
           <div>
-            <h1>Dashboard</h1>
-            <p>{isCashier ? 'Welcome Back, Cashier' : 'Welcome Back, Super Admin'}</p>
+            <h1 className="sa-dashboard-title">Dashboard</h1>
+            <p className="sa-dashboard-subtitle">Hello {displayName}, Welcome back!</p>
           </div>
 
           <div className="sa-bell-wrap" ref={notifRef}>
             <button
               type="button"
-              className="sa-bell"
+              className="sa-bell-btn"
               aria-label="Notifications"
               onClick={() => setNotifOpen((v) => !v)}
             >
@@ -342,26 +396,26 @@ export default function SuperAdminDashboard({ user, onLogout }) {
                     </div>
                   ) : (
                     filteredNotifs.map((n) => {
-                    const Icon = n.icon
-                    return (
-                      <div key={n.id} className="sa-notif-item">
-                        <div
-                          className="sa-notif-icon"
-                          style={{ background: n.tone.bg, color: n.tone.color }}
-                        >
-                          <Icon />
+                      const Icon = n.icon
+                      return (
+                        <div key={n.id} className="sa-notif-item">
+                          <div
+                            className="sa-notif-icon"
+                            style={{ background: n.tone.bg, color: n.tone.color }}
+                          >
+                            <Icon />
+                          </div>
+                          <div className="sa-notif-body">
+                            <strong>{n.title}</strong>
+                            <p>{n.body}</p>
+                          </div>
+                          <div className="sa-notif-meta">
+                            <span className="sa-notif-time">{n.time}</span>
+                            {n.unread && <span className="sa-unread" />}
+                          </div>
                         </div>
-                        <div className="sa-notif-body">
-                          <strong>{n.title}</strong>
-                          <p>{n.body}</p>
-                        </div>
-                        <div className="sa-notif-meta">
-                          <span className="sa-notif-time">{n.time}</span>
-                          {n.unread && <span className="sa-unread" />}
-                        </div>
-                      </div>
-                    )
-                  })
+                      )
+                    })
                   )}
                 </div>
 
@@ -375,228 +429,288 @@ export default function SuperAdminDashboard({ user, onLogout }) {
           </div>
         </header>
 
-        <section className="sa-stats">
-          <article className="sa-card sa-stat">
-            <div className="sa-stat-icon yellow">
+        {/* 4 Stat Cards */}
+        <section className="sa-stats-grid">
+          <article className="sa-stat-card">
+            <div className="sa-stat-icon-wrap orange">
               <IconCart />
             </div>
-            <div>
-              <div className="sa-stat-label">Total Sales (Today)</div>
-              <div className="sa-stat-value">{salesTotalLabel}</div>
+            <div className="sa-stat-text">
+              <div className="sa-stat-value">{salesTotalLabel || '₱890.00'}</div>
+              <div className="sa-stat-label">Total Sales</div>
             </div>
           </article>
 
-          <article className="sa-card sa-stat">
-            <div className="sa-stat-icon green">
+          <article className="sa-stat-card">
+            <div className="sa-stat-icon-wrap green">
               <IconClipboard />
             </div>
-            <div>
-              <div className="sa-stat-label">Total Orders (Today)</div>
+            <div className="sa-stat-text">
               <div className="sa-stat-value">{totalOrdersToday}</div>
+              <div className="sa-stat-label">New Orders</div>
             </div>
           </article>
 
-          <article className="sa-card sa-stat">
-            <div className="sa-stat-icon blue">
+          <article className="sa-stat-card">
+            <div className="sa-stat-icon-wrap blue">
               <IconBike />
             </div>
-            <div>
-              <div className="sa-stat-label">Active Orders</div>
-              <div className="sa-stat-value">{activeOrders}</div>
+            <div className="sa-stat-text">
+              <div className="sa-stat-value">{activeDrivers}</div>
+              <div className="sa-stat-label">Active Driver</div>
+            </div>
+          </article>
+
+          <article className="sa-stat-card">
+            <div className="sa-stat-icon-wrap purple">
+              <IconBox />
+            </div>
+            <div className="sa-stat-text">
+              <div className="sa-stat-value">{lowStocksCount}</div>
+              <div className="sa-stat-label">Low Stock Alert</div>
             </div>
           </article>
         </section>
 
-        <section className="sa-row-mid">
-          <article className="sa-card">
-            <div className="sa-card-head">
-              <h2 className="sa-card-title">Sales Overview</h2>
-            </div>
-
-            <div className="sa-sales-controls">
-              <div className="sa-select-wrap" ref={periodRef}>
-                <button
-                  type="button"
-                  className="sa-select-btn"
-                  onClick={() => setPeriodOpen((v) => !v)}
+        {/* Middle Row: Sales Overview & Activity Log */}
+        <section className="sa-row-middle">
+          <article className="sa-overview-card">
+            <div className="sa-card-header">
+              <h2 className="sa-card-heading">Sales Overview</h2>
+              <div className="sa-sales-controls">
+                <select
+                  className="sa-sales-select"
+                  value={salesPeriod}
+                  onChange={(e) => setSalesPeriod(e.target.value)}
                 >
-                  {salesPeriod} <IconChevronDown />
-                </button>
-                {periodOpen && (
-                  <div className="sa-select-menu">
-                    {PERIODS.map((period) => (
-                      <button
-                        key={period}
-                        type="button"
-                        className={`sa-select-option${salesPeriod === period ? ' active' : ''}`}
-                        onClick={() => {
-                          setSalesPeriod(period)
-                          setPeriodOpen(false)
-                        }}
-                      >
-                        {period}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
+                  {PERIODS.map((p) => (
+                    <option key={p} value={p}>
+                      {p}
+                    </option>
+                  ))}
+                </select>
 
-              <div className="sa-time-range">
-                From <span>8:00 AM</span> To <span>8:00 PM</span>
+                <select
+                  className="sa-sales-select"
+                  value={fromTime}
+                  onChange={(e) => setFromTime(e.target.value)}
+                >
+                  <option value="From 8:00 AM">From 8:00 AM</option>
+                  <option value="From 9:00 AM">From 9:00 AM</option>
+                  <option value="From 10:00 AM">From 10:00 AM</option>
+                  <option value="From 11:00 AM">From 11:00 AM</option>
+                  <option value="From 12:00 PM">From 12:00 PM</option>
+                </select>
+
+                <select
+                  className="sa-sales-select"
+                  value={toTime}
+                  onChange={(e) => setToTime(e.target.value)}
+                >
+                  <option value="To 8:00 PM">To 8:00 PM</option>
+                  <option value="To 9:00 PM">To 9:00 PM</option>
+                  <option value="To 10:00 PM">To 10:00 PM</option>
+                  <option value="To 11:00 PM">To 11:00 PM</option>
+                </select>
               </div>
             </div>
 
-            <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={salesData} barSize={26}>
-                <XAxis
-                  dataKey="t"
-                  tick={{ fill: '#8a8a8a', fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                />
-                <YAxis
-                  tick={{ fill: '#8a8a8a', fontSize: 11 }}
-                  axisLine={false}
-                  tickLine={false}
-                  width={44}
-                  tickFormatter={(v) => `₱${(v / 1000).toFixed(0)}K`}
-                />
-                <Tooltip
-                  cursor={{ fill: 'rgba(240,160,32,0.08)' }}
-                  contentStyle={{
-                    borderRadius: 8,
-                    border: '1px solid #eee',
-                    fontSize: 12,
-                  }}
-                  formatter={(v) => [`₱${Number(v).toLocaleString()}`, 'Sales']}
-                />
-                <Bar dataKey="v" fill="#f0a020" radius={[6, 6, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div style={{ width: '100%', height: 260 }}>
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={displaySalesData} barSize={22} margin={{ top: 10, right: 10, left: -10, bottom: 0 }}>
+                  <CartesianGrid stroke="#EDEDED" strokeDasharray="0" vertical={false} />
+                  <XAxis
+                    dataKey="t"
+                    tick={{ fill: '#888888', fontSize: 11 }}
+                    axisLine={{ stroke: '#EDEDED' }}
+                    tickLine={false}
+                  />
+                  <YAxis
+                    domain={[0, 30000]}
+                    ticks={[0, 6000, 12000, 18000, 24000, 30000]}
+                    tick={{ fill: '#888888', fontSize: 11 }}
+                    axisLine={false}
+                    tickLine={false}
+                    width={52}
+                    tickFormatter={(v) => (v === 0 ? '₱0' : `₱${v / 1000}K`)}
+                  />
+                  <Tooltip
+                    cursor={{ fill: 'rgba(255,165,0,0.06)' }}
+                    contentStyle={{
+                      borderRadius: 8,
+                      border: '1px solid #EDEDED',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
+                      fontSize: 12,
+                    }}
+                    formatter={(v) => [`₱${Number(v).toLocaleString()}`, 'Sales']}
+                  />
+                  <Bar dataKey="v" fill="#FFA500" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           </article>
 
-          <article className="sa-card">
-            <div className="sa-card-head">
-              <h2 className="sa-card-title">Activity Log</h2>
-              <span style={{ fontSize: 11, color: '#6b6b6b' }}>
-                {new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
-              </span>
+          <article className="sa-activity-card">
+            <div className="sa-card-header">
+              <h2 className="sa-card-heading">Activity Log</h2>
+              <span className="sa-activity-date">{currentDateFormatted}</span>
             </div>
-            <table className="sa-table">
-              <thead>
-                <tr>
-                  <th>Time</th>
-                  <th>User</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {activityLog.map((row) => (
-                  <tr key={`${row.time}-${row.action}`}>
-                    <td style={{ color: '#6b6b6b', whiteSpace: 'nowrap' }}>{row.time}</td>
-                    <td>{row.user}</td>
-                    <td>{row.action}</td>
+
+            <div className="sa-activity-table-wrap">
+              <table className="sa-activity-table">
+                <thead>
+                  <tr>
+                    <th>Time</th>
+                    <th>User</th>
+                    <th>Activity</th>
+                    <th style={{ textAlign: 'right' }}>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {displayActivityLog.map((row, idx) => {
+                    const timeParts = String(row.time || '').split(' ')
+                    const timeNum = timeParts[0] || row.time
+                    const timeAmpm = timeParts[1] || ''
+
+                    return (
+                      <tr key={idx}>
+                        <td className="sa-act-time">
+                          <div>{timeNum}</div>
+                          <div className="sa-act-ampm">{timeAmpm}</div>
+                        </td>
+                        <td className="sa-act-user">{row.user}</td>
+                        <td className="sa-act-desc">{row.action}</td>
+                        <td className="sa-act-status">
+                          <span className="sa-badge-success">Success</span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
+            </div>
           </article>
         </section>
 
-        <section className="sa-row-bot">
-          <article className="sa-card">
-            <div className="sa-card-head">
-              <h2 className="sa-card-title">Order Status (Today)</h2>
+        {/* Bottom Row: Donut status, Order list, Low stocks */}
+        <section className="sa-row-bottom">
+          <article className="sa-bottom-card">
+            <div className="sa-card-header">
+              <h2 className="sa-card-heading">Order Status (Today)</h2>
             </div>
-            <div className="sa-donut-wrap">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={orderStatus}
-                    dataKey="value"
-                    cx="50%"
-                    cy="50%"
-                    innerRadius={48}
-                    outerRadius={68}
-                    paddingAngle={2}
-                  >
-                    {orderStatus.map((entry) => (
-                      <Cell key={entry.name} fill={entry.color} />
-                    ))}
-                  </Pie>
-                  <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />
-                </PieChart>
-              </ResponsiveContainer>
-              <div className="sa-donut-center">
-                <div>
-                  <strong>{orderTotal}</strong>
-                  <span>Total Orders</span>
+            <div className="sa-donut-container">
+              <div className="sa-donut-chart-wrap">
+                <ResponsiveContainer width={140} height={140}>
+                  <PieChart>
+                    <Pie
+                      data={orderTotal === 0 ? [{ name: 'Empty', value: 1, color: '#E5E7EB' }] : currentOrderStatus}
+                      dataKey="value"
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={46}
+                      outerRadius={66}
+                      stroke="none"
+                      paddingAngle={orderTotal === 0 ? 0 : 2}
+                    >
+                      {(orderTotal === 0 ? [{ name: 'Empty', value: 1, color: '#E5E7EB' }] : currentOrderStatus).map(
+                        (entry, index) => (
+                          <Cell key={index} fill={entry.color} />
+                        ),
+                      )}
+                    </Pie>
+                    {orderTotal > 0 && <Tooltip contentStyle={{ borderRadius: 8, fontSize: 12 }} />}
+                  </PieChart>
+                </ResponsiveContainer>
+                <div className="sa-donut-center-info">
+                  <div className="sa-donut-center-num">{orderTotal}</div>
+                  <div className="sa-donut-center-lbl">Total Orders</div>
                 </div>
               </div>
-            </div>
-            <div className="sa-legend">
-              {orderStatus.map((s) => (
-                <div key={s.name} className="sa-legend-row">
-                  <i className="sa-dot" style={{ background: s.color }} />
-                  <span style={{ flex: 1 }}>{s.name}</span>
-                  <strong style={{ color: '#1a1a1a' }}>{s.value}</strong>
-                </div>
-              ))}
-            </div>
-          </article>
 
-          <article className="sa-card">
-            <div className="sa-card-head">
-              <h2 className="sa-card-title">Order Status (Today)</h2>
-              <button type="button" className="sa-link">
-                View All
-              </button>
-            </div>
-            <table className="sa-table">
-              <thead>
-                <tr>
-                  <th>Order ID</th>
-                  <th>Customer</th>
-                  <th>Status</th>
-                  <th>Price</th>
-                </tr>
-              </thead>
-              <tbody>
-                {orders.map((o) => (
-                  <tr key={o.id}>
-                    <td className="sa-order-id">{o.id}</td>
-                    <td>{o.customer}</td>
-                    <td>
-                      <span className={`sa-badge ${o.tone}`}>{o.status}</span>
-                    </td>
-                    <td style={{ fontWeight: 700 }}>{o.amount}</td>
-                  </tr>
+              <div className="sa-donut-legend-wrap">
+                {currentOrderStatus.map((s) => (
+                  <div key={s.name} className="sa-donut-legend-item">
+                    <span className="sa-donut-dot" style={{ backgroundColor: s.color }} />
+                    <span className="sa-donut-legend-label">{s.name}</span>
+                    <span className="sa-donut-legend-count">{s.value}</span>
+                  </div>
                 ))}
-              </tbody>
-            </table>
+              </div>
+            </div>
           </article>
 
-          <article className="sa-card">
-            <div className="sa-card-head">
-              <h2 className="sa-card-title">Low Stocks Alert</h2>
-              <button type="button" className="sa-link">
+          <article className="sa-bottom-card">
+            <div className="sa-card-header">
+              <h2 className="sa-card-heading">Order Status (Today)</h2>
+              <button
+                type="button"
+                className="sa-card-link"
+                onClick={() => setActiveNav('Orders')}
+              >
                 View All
               </button>
             </div>
-            {lowStocks.map((item) => {
-              const tone = stockTone(item.level)
-              return (
-                <div key={item.name} className="sa-stock">
-                  <div className="sa-stock-top">
-                    <span className={`sa-stock-name ${tone}`}>{item.name}</span>
-                    <span className="sa-stock-qty">{item.qty}</span>
+            {orders.length === 0 ? (
+              <div className="sa-empty-state-centered">No orders today</div>
+            ) : (
+              <div className="sa-activity-table-wrap">
+                <table className="sa-activity-table">
+                  <thead>
+                    <tr>
+                      <th>Order ID</th>
+                      <th>Customer</th>
+                      <th>Status</th>
+                      <th>Price</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {orders.map((o) => (
+                      <tr key={o.id}>
+                        <td className="sa-order-id">{o.id}</td>
+                        <td>{o.customer}</td>
+                        <td>
+                          <span className={`sa-badge ${o.tone}`}>{o.status}</span>
+                        </td>
+                        <td style={{ fontWeight: 700 }}>{o.amount}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </article>
+
+          <article className="sa-bottom-card">
+            <div className="sa-card-header">
+              <h2 className="sa-card-heading">Low Stocks Alert</h2>
+              <button
+                type="button"
+                className="sa-card-link"
+                onClick={() => setActiveNav('Inventory')}
+              >
+                View All
+              </button>
+            </div>
+            {lowStocks.length === 0 ? (
+              <div className="sa-empty-state-text">
+                All inventory items are above the reorder level.
+              </div>
+            ) : (
+              lowStocks.map((item) => {
+                const tone = stockTone(item.level)
+                return (
+                  <div key={item.name} className="sa-stock">
+                    <div className="sa-stock-top">
+                      <span className={`sa-stock-name ${tone}`}>{item.name}</span>
+                      <span className="sa-stock-qty">{item.qty}</span>
+                    </div>
+                    <div className="sa-bar">
+                      <i className={tone} style={{ width: `${item.level}%` }} />
+                    </div>
                   </div>
-                  <div className="sa-bar">
-                    <i className={tone} style={{ width: `${item.level}%` }} />
-                  </div>
-                </div>
-              )
-            })}
+                )
+              })
+            )}
           </article>
         </section>
           </>

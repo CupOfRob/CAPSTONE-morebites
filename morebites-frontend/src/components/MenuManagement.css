@@ -158,7 +158,7 @@
 
 .mm-tab.active span {
   background: var(--sa-accent);
-  color: #1a1a1a;
+  color: #fff;
 }
 
 .mm-table-card {
@@ -360,7 +360,7 @@
 .mm-pages button:not(:disabled):hover {
   background: var(--sa-accent);
   border-color: var(--sa-accent);
-  color: #1a1a1a;
+  color: #fff;
 }
 
 /* Modals */
@@ -720,7 +720,7 @@
   border: none;
   border-radius: 9px;
   background: var(--sa-accent);
-  color: #1a1a1a;
+  color: #fff;
   font-size: 13px;
   font-weight: 800;
   cursor: pointer;

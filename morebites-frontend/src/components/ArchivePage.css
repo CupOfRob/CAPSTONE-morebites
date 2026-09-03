@@ -104,9 +104,11 @@
   cursor: pointer;
 }
 
-.ar-pages button.active {
+.ar-pages button.active,
+.ar-pages button:not(:disabled):hover {
   background: var(--sa-accent);
   border-color: var(--sa-accent);
+  color: #fff;
 }
 
 .ar-backdrop {
@@ -165,7 +167,7 @@
   border: none;
   border-radius: 8px;
   background: var(--sa-accent);
-  color: #1a1a1a;
+  color: #fff;
   font-weight: 800;
   cursor: pointer;
 }

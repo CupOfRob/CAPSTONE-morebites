@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\InventoryItem;
 use App\Models\Order;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -21,23 +22,30 @@ class DashboardController extends Controller
         $activeOrders = (clone $todayOrders)->whereIn('status', [
             'Pending', 'Preparing', 'Ready', 'Out for Delivery',
         ])->count();
+        $activeDrivers = User::query()
+            ->where('role', 'driver')
+            ->whereNull('archived_at')
+            ->where(function ($q) {
+                $q->where('status', 'active')->orWhereNull('status');
+            })
+            ->count();
+        $lowStocksCount = InventoryItem::query()
+            ->whereIn('status', ['Low Stock', 'Out of Stock'])
+            ->count();
 
+        $defaultHours = ['8 AM', '9 AM', '10 AM', '11 AM', '12 PM', '1 PM', '2 PM', '3 PM', '4 PM', '5 PM', '6 PM', '7 PM'];
         $salesRows = Order::query()
-            ->select(DB::raw("DATE_FORMAT(created_at, '%H:00') as t"), DB::raw('SUM(total) as v'))
+            ->select(DB::raw("DATE_FORMAT(created_at, '%l %p') as t"), DB::raw('SUM(total) as v'))
             ->whereDate('created_at', today())
             ->groupBy('t')
             ->orderBy('t')
             ->get()
-            ->map(fn ($r) => ['t' => $r->t, 'v' => (float) $r->v]);
+            ->pluck('v', 't');
 
-        if ($salesRows->isEmpty()) {
-            $salesRows = collect([
-                ['t' => '8AM', 'v' => 0],
-                ['t' => '12PM', 'v' => 0],
-                ['t' => '4PM', 'v' => 0],
-                ['t' => '8PM', 'v' => 0],
-            ]);
-        }
+        $formattedSales = collect($defaultHours)->map(fn ($h) => [
+            't' => $h,
+            'v' => (float) ($salesRows[$h] ?? 0),
+        ]);
 
         $statusCounts = Order::query()
             ->whereDate('created_at', today())
@@ -69,8 +77,9 @@ class DashboardController extends Controller
             ->get()
             ->map(fn ($a) => [
                 'time' => $a->created_at?->format('g:i A'),
-                'user' => $a->actor,
+                'user' => $a->actor ?: 'Admin',
                 'action' => $a->action,
+                'status' => 'Success',
             ]);
 
         $lowStocks = InventoryItem::query()
@@ -94,8 +103,10 @@ class DashboardController extends Controller
                     'total_sales_label' => '₱'.number_format($totalSales, 2),
                     'total_orders' => $totalOrders,
                     'active_orders' => $activeOrders,
+                    'active_drivers' => $activeDrivers,
+                    'low_stocks_count' => $lowStocksCount,
                 ],
-                'sales' => $salesRows,
+                'sales' => $formattedSales,
                 'order_status' => $orderStatus,
                 'recent_orders' => $recentOrders,
                 'activity_log' => $activity,

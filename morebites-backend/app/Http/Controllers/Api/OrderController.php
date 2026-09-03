@@ -51,7 +51,8 @@ class OrderController extends Controller
     {
         $data = $request->validate([
             'customer_name' => ['required', 'string'],
-            'order_type' => ['required', 'string'],
+            'order_type' => ['required', 'string', 'in:Dine-in,Takeout'],
+            'status' => ['nullable', 'string'],
             'items' => ['required', 'array', 'min:1'],
             'items.*.name' => ['required', 'string'],
             'items.*.menu_item_id' => ['nullable', 'integer'],
@@ -79,7 +80,7 @@ class OrderController extends Controller
                 'customer_name' => $data['customer_name'],
                 'order_type' => $data['order_type'],
                 'total' => $total,
-                'status' => 'Pending',
+                'status' => $data['status'] ?? 'Preparing',
                 'payment_method' => 'COD',
                 'payment_status' => 'Paid',
                 'delivery_address' => $data['delivery_address'] ?? null,

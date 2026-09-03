@@ -85,6 +85,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     Route::get('/reports', [ReportController::class, 'index']);
     Route::post('/reports/generate', [ReportController::class, 'generate']);
+    Route::delete('/reports/{report}', [ReportController::class, 'destroy']);
 
     Route::middleware('not.cashier')->group(function () {
         Route::post('/delivery-rates', [DeliveryRateController::class, 'store']);

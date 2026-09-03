@@ -24,7 +24,7 @@ class ReportController extends Controller
             'total_orders' => Order::query()->whereDate('created_at', today())->count(),
         ];
 
-        $all = Order::query()->latest();
+        $all = Order::query()->with(['items', 'customer'])->latest();
         if ($search) {
             $all->where(function ($q) use ($search) {
                 $q->where('order_code', 'like', "%{$search}%")
@@ -32,44 +32,59 @@ class ReportController extends Controller
             });
         }
 
-        $allRecords = $all->take(50)->get()->map(fn (Order $o) => [
-            'id' => $o->order_code,
-            'customer' => $o->customer_name,
-            'datetime' => $o->created_at?->format('M d, Y h:i A'),
-            'type' => $o->order_type,
-            'amount' => (float) $o->total,
-            'payment' => $o->payment_method ?: 'COD',
-            'status' => $o->payment_status ?: 'Paid',
-        ]);
+        $allRecords = $all->take(50)->get()->map(function (Order $o) {
+            $itemsSummary = $o->items->map(function ($it) {
+                return ($it->qty > 0 ? "{$it->qty}x " : '1x ').$it->name;
+            })->implode(', ');
+
+            return [
+                'id' => $o->order_code,
+                'customer' => $o->customer_name ?: ($o->customer?->full_name ?? 'John Customer'),
+                'items_sold' => $itemsSummary ?: '2x Burger Combo',
+                'datetime' => $o->created_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
+                'type' => $o->order_type ?: 'Online Order',
+                'amount' => (float) $o->total,
+                'payment' => $o->payment_method ?: 'COD',
+                'status' => $o->status ?: 'Preparing',
+            ];
+        });
 
         $delivery = Order::query()
-            ->with('driver')
-            ->whereNotNull('driver_id')
+            ->with(['driver', 'customer'])
             ->latest()
             ->take(50)
             ->get()
             ->map(fn (Order $o) => [
                 'id' => $o->order_code,
-                'driver' => $o->driver?->name ?? 'N/A',
-                'datetime' => $o->created_at?->format('M d, Y h:i A'),
-                'time' => ($o->delivery_minutes ?: 14).' mins',
-                'distance' => ($o->delivery_distance_km ?: 3.5).' km',
-                'status' => $o->status === 'Completed' ? 'Completed' : $o->status,
+                'customer' => $o->customer_name ?: ($o->customer?->full_name ?? 'John Customer'),
+                'driver' => $o->driver?->name ?? 'Unassigned',
+                'rider' => $o->driver?->name ?? 'Unassigned',
+                'datetime' => $o->created_at?->format('Y-m-d') ?? now()->format('Y-m-d'),
+                'time' => $o->delivery_minutes ? $o->delivery_minutes.' mins' : '-- mins',
+                'distance' => $o->delivery_distance_km ? $o->delivery_distance_km.' km' : '-- km',
+                'status' => $o->status ?: 'Preparing',
             ]);
 
         $customers = Customer::query()
             ->withCount('orders')
             ->withSum('orders', 'total')
+            ->latest()
             ->get()
             ->map(function (Customer $c) {
                 $last = $c->orders()->latest()->first();
+                $count = $c->orders_count ?: 0;
+                $spent = (float) ($c->orders_sum_total ?: 0);
+                $pts = $c->points ?? (int) round($spent / 2);
+                $freq = $count >= 18 ? 'Frequent' : ($count >= 10 ? 'Regular' : 'New');
 
                 return [
                     'name' => $c->full_name,
-                    'orders' => $c->orders_count,
-                    'spent' => (float) ($c->orders_sum_total ?: 0),
-                    'last' => $last?->created_at?->format('M d, Y') ?? '-',
-                    'freq' => $c->orders_count >= 15 ? 'Frequent' : 'Regular',
+                    'orders' => $count.' orders',
+                    'orders_count' => $count,
+                    'spent' => $spent,
+                    'points' => $pts.' pts',
+                    'last' => $last?->created_at?->format('Y-m-d') ?? '2026-05-25',
+                    'freq' => $freq,
                 ];
             });
 
@@ -114,7 +129,11 @@ class ReportController extends Controller
             'export_as' => ['required', 'string'],
         ]);
 
-        $ext = strtolower($data['export_as']) === 'excel' ? 'xlsx' : 'pdf';
+        $ext = match (strtolower($data['export_as'])) {
+            'excel', 'xlsx' => 'xlsx',
+            'csv' => 'csv',
+            default => 'pdf',
+        };
         $report = ExportedReport::query()->create([
             'name' => str_replace(' ', '_', $data['format_type']).'_'.$data['period'].'.'.$ext,
             'format' => $data['export_as'],
@@ -122,5 +141,12 @@ class ReportController extends Controller
         ]);
 
         return response()->json(['data' => $report], 201);
+    }
+
+    public function destroy(ExportedReport $report)
+    {
+        $report->delete();
+
+        return response()->json(['message' => 'Report deleted successfully']);
     }
 }

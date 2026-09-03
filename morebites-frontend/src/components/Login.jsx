@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { authApi, setSession } from '../api/client'
 import logo from '../assets/logo.png'
-import loginBg from '../assets/login-bg.jpg'
+import loginBg from '../assets/OVEN.webp'
 import './Login.css'
 
 export default function Login({ onLogin }) {

@@ -24,7 +24,9 @@ import {
   IconDispatch,
   IconGear,
   IconGrid,
+  IconHelmet,
   IconInventory,
+  IconLogout,
   IconMenu,
   IconOrders,
   IconReports,
@@ -37,7 +39,7 @@ import RecordsReports from './RecordsReports'
 import CustomerManagement from './CustomerManagement'
 import AccountManagement from './AccountManagement'
 import DeliveryRatesSettings from './DeliveryRatesSettings'
-import { MoreButton, RowActionMenuPopup, useRowActionMenu } from './RowActionMenu'
+import DriverManagement from './DriverManagement'
 import { dashboardApi } from '../api/client'
 import './SuperAdminDashboard.css'
 
@@ -51,16 +53,26 @@ const STATUS_COLORS = {
   'Out for Delivery': '#7b61ff',
 }
 
-const navItems = [
+const adminNavItems = [
   { label: 'Dashboard', icon: IconGrid },
   { label: 'Orders', icon: IconOrders },
   { label: 'Menu', icon: IconMenu },
   { label: 'Inventory', icon: IconInventory },
   { label: 'Dispatch', icon: IconDispatch },
   { label: 'Reports', icon: IconReports },
-  { label: 'Customers', icon: IconCustomers, cashierRestricted: true },
-  { label: 'Account', icon: IconAccount, cashierRestricted: true },
-  { label: 'Settings', icon: IconGear, cashierRestricted: true },
+  { label: 'Customers', icon: IconCustomers },
+  { label: 'Account', icon: IconAccount },
+  { label: 'Settings', icon: IconGear },
+]
+
+const cashierNavItems = [
+  { label: 'Dashboard', icon: IconGrid },
+  { label: 'Orders', icon: IconOrders },
+  { label: 'Menu', icon: IconMenu },
+  { label: 'Inventory', icon: IconInventory },
+  { label: 'Dispatch', icon: IconDispatch },
+  { label: 'Reports', icon: IconReports },
+  { label: 'Driver', icon: IconHelmet },
 ]
 
 const notifications = []
@@ -75,14 +87,13 @@ function stockTone(level) {
 
 export default function SuperAdminDashboard({ user, onLogout }) {
   const isCashier = user?.role === 'cashier'
-  const visibleNavItems = isCashier
-    ? navItems.filter((item) => !item.cashierRestricted)
-    : navItems
+  const visibleNavItems = isCashier ? cashierNavItems : adminNavItems
   const [activeNav, setActiveNav] = useState('Dashboard')
   const [salesPeriod, setSalesPeriod] = useState('Daily')
   const [periodOpen, setPeriodOpen] = useState(false)
   const [notifOpen, setNotifOpen] = useState(false)
   const [notifTab, setNotifTab] = useState('All')
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
   const [salesData, setSalesData] = useState([])
   const [salesTotalLabel, setSalesTotalLabel] = useState('₱0.00')
   const [totalOrdersToday, setTotalOrdersToday] = useState(0)
@@ -93,12 +104,6 @@ export default function SuperAdminDashboard({ user, onLogout }) {
   const [lowStocks, setLowStocks] = useState([])
   const notifRef = useRef(null)
   const periodRef = useRef(null)
-  const {
-    menuRef: profileMenuRef,
-    menu: profileMenu,
-    toggleMenu: toggleProfileMenu,
-    closeMenu: closeProfileMenu,
-  } = useRowActionMenu()
 
   useEffect(() => {
     let cancelled = false
@@ -138,16 +143,21 @@ export default function SuperAdminDashboard({ user, onLogout }) {
     }
   }, [salesPeriod])
 
-  const displayName = user?.name || 'John Owner'
+  const displayName = user?.name || 'John Doe'
   const displayRole =
-    user?.role === 'super_admin' ? 'Owner' : user?.role === 'cashier' ? 'Cashier' : user?.role || 'Owner'
-  const initials = displayName
-    .split(' ')
-    .filter(Boolean)
-    .map((p) => p[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase() || 'JD'
+    user?.role === 'super_admin' || user?.role === 'admin'
+      ? 'Administrator'
+      : user?.role === 'cashier'
+        ? 'Cashier'
+        : user?.role || 'Administrator'
+  const initials =
+    displayName
+      .split(' ')
+      .filter(Boolean)
+      .map((p) => p[0])
+      .join('')
+      .slice(0, 2)
+      .toUpperCase() || 'JD'
 
   useEffect(() => {
     function onDocClick(e) {
@@ -157,6 +167,18 @@ export default function SuperAdminDashboard({ user, onLogout }) {
     document.addEventListener('mousedown', onDocClick)
     return () => document.removeEventListener('mousedown', onDocClick)
   }, [])
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        setShowLogoutModal(false)
+      }
+    }
+    if (showLogoutModal) {
+      window.addEventListener('keydown', onKeyDown)
+      return () => window.removeEventListener('keydown', onKeyDown)
+    }
+  }, [showLogoutModal])
 
   const filteredNotifs =
     notifTab === 'All' ? notifications : notifications.filter((n) => n.tab === notifTab)
@@ -168,54 +190,89 @@ export default function SuperAdminDashboard({ user, onLogout }) {
     <div className="sa-layout">
       <aside className="sa-sidebar">
         <div className="sa-logo-wrap">
-          <img src={logo} alt="Lynloves morebites Food Corner" className="sa-logo" />
+          <img src={logo} alt="MOREBYTES LOGO.png" className="sa-logo" />
         </div>
+        <div className="sa-sidebar-divider" />
 
         <nav className="sa-nav">
-          {visibleNavItems.map(({ label, icon: Icon }) => (
-            <button
-              key={label}
-              type="button"
-              className={`sa-nav-item${activeNav === label ? ' active' : ''}`}
-              onClick={() => setActiveNav(label)}
-            >
-              <Icon />
-              <span>{label}</span>
-            </button>
-          ))}
+          {visibleNavItems.map(({ label, icon: Icon }) => {
+            const isActive = activeNav === label
+            return (
+              <button
+                key={label}
+                type="button"
+                className={`sa-nav-item${isActive ? ' active' : ''}`}
+                onClick={() => setActiveNav(label)}
+              >
+                {isActive && <span className="sa-nav-accent" />}
+                <Icon className="sa-nav-icon" />
+                <span className="sa-nav-label">{label}</span>
+              </button>
+            )
+          })}
         </nav>
 
-        <div className="sa-profile">
-          <div className="sa-avatar">{initials}</div>
-          <div className="sa-profile-text">
-            <div className="sa-profile-name">{displayName}</div>
-            <div className="sa-profile-role">{displayRole}</div>
+        <div className="sa-sidebar-footer">
+          <div className="sa-sidebar-divider" />
+          <div className="sa-profile">
+            <div className="sa-avatar">{initials}</div>
+            <div className="sa-profile-text">
+              <div className="sa-profile-name" title={displayName}>{displayName}</div>
+              <div className="sa-profile-role" title={displayRole}>{displayRole}</div>
+            </div>
+            <button
+              type="button"
+              className="sa-logout-btn"
+              aria-label="Log Out"
+              title="Log Out"
+              onClick={() => setShowLogoutModal(true)}
+            >
+              <IconLogout />
+            </button>
           </div>
-          <MoreButton
-            className="sa-profile-more"
-            label="Profile menu"
-            onClick={(e) => toggleProfileMenu(e, 'profile')}
-          />
         </div>
       </aside>
 
-      {profileMenu?.key === 'profile' && (
-        <RowActionMenuPopup
-          menuRef={profileMenuRef}
-          top={profileMenu.top}
-          left={profileMenu.left}
+      {showLogoutModal && (
+        <div
+          className="sa-logout-backdrop"
+          onClick={() => setShowLogoutModal(false)}
+          role="presentation"
         >
-          <button
-            type="button"
-            className="danger"
-            onClick={() => {
-              closeProfileMenu()
-              onLogout?.()
-            }}
+          <div
+            className="sa-logout-modal"
+            onClick={(e) => e.stopPropagation()}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="sa-logout-title"
           >
-            Log Out
-          </button>
-        </RowActionMenuPopup>
+            <h3 id="sa-logout-title" className="sa-logout-title">
+              Log Out?
+            </h3>
+            <p className="sa-logout-text">
+              Are you sure you want to log out of your account?
+            </p>
+            <div className="sa-logout-actions">
+              <button
+                type="button"
+                className="sa-logout-cancel"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                className="sa-logout-confirm"
+                onClick={() => {
+                  setShowLogoutModal(false)
+                  onLogout?.()
+                }}
+              >
+                Log Out
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       <main className="sa-main">
@@ -229,6 +286,8 @@ export default function SuperAdminDashboard({ user, onLogout }) {
           <DispatchManagement />
         ) : activeNav === 'Reports' ? (
           <RecordsReports />
+        ) : activeNav === 'Driver' ? (
+          <DriverManagement />
         ) : !isCashier && activeNav === 'Customers' ? (
           <CustomerManagement />
         ) : !isCashier && activeNav === 'Account' ? (

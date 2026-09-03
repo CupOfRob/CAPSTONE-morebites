@@ -19,46 +19,73 @@ export function IconGrid(props) {
 
 export function IconOrders(props) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M6 7h12l-1 12H7L6 7z" {...stroke} />
-      <path d="M9 7V5a3 3 0 0 1 6 0v2" {...stroke} />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
+      <rect x="5" y="4" width="14" height="17" rx="2" {...stroke} />
+      <path d="M9 4.5h6V6a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1V4.5z" {...stroke} />
+      <path d="M9 11h6M9 14.5h6M9 18h4" {...stroke} />
     </svg>
   )
 }
 
 export function IconMenu(props) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M4 6h16M4 12h16M4 18h10" {...stroke} />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
+      <path d="M18 4v16M18 4a3 3 0 0 0-3 3v4h3" {...stroke} />
+      <path d="M6 4v5a2.5 2.5 0 0 0 5 0V4M8.5 11.5V20M8.5 4v5" {...stroke} />
+    </svg>
+  )
+}
+
+export function IconUtensils(props) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
+      <path d="M18 4v16M18 4a3 3 0 0 0-3 3v4h3" {...stroke} />
+      <path d="M6 4v5a2.5 2.5 0 0 0 5 0V4M8.5 11.5V20M8.5 4v5" {...stroke} />
     </svg>
   )
 }
 
 export function IconInventory(props) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M21 8l-9-5-9 5v8l9 5 9-5V8z" {...stroke} />
-      <path d="M3.5 8.5L12 13l8.5-4.5M12 13v9" {...stroke} />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
+      <path d="M4 8l8-4 8 4v8l-8 4-8-4V8z" {...stroke} />
+      <path d="M4 8l8 4 8-4M12 12v8" {...stroke} />
     </svg>
   )
 }
 
 export function IconDispatch(props) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M3 16V8h11v8" {...stroke} />
-      <path d="M14 10h4l3 3v3h-7" {...stroke} />
-      <circle cx="7" cy="17" r="2" {...stroke} />
-      <circle cx="17" cy="17" r="2" {...stroke} />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
+      <circle cx="6.5" cy="16.5" r="3" {...stroke} />
+      <circle cx="17.5" cy="16.5" r="3" {...stroke} />
+      <path d="M6.5 16.5l3.5-7h4l2 4h1.5" {...stroke} />
+      <path d="M10 9.5h4.5" {...stroke} />
     </svg>
   )
 }
 
 export function IconReports(props) {
   return (
-    <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden {...props}>
-      <path d="M4 19V5M4 19h16" {...stroke} />
-      <path d="M8 15v-4M12 15V8M16 15v-6" {...stroke} />
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
+      <rect x="4" y="13" width="3.5" height="7" rx="1.75" fill="currentColor" />
+      <rect x="10.25" y="5" width="3.5" height="15" rx="1.75" fill="currentColor" />
+      <rect x="16.5" y="9" width="3.5" height="11" rx="1.75" fill="currentColor" />
+    </svg>
+  )
+}
+
+export function IconHelmet(props) {
+  return (
+    <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden {...props}>
+      <path
+        d="M12 4.5C6.8 4.5 3.5 8.5 3.5 13.5c0 2.2.7 4.1 2 5.5l.8.7h6.7c4 0 7.5-3.3 7.5-7.5C20.5 8 17 4.5 12 4.5z"
+        {...stroke}
+      />
+      <path
+        d="M4.5 13.5h7c1.1 0 2 .9 2 2v0c0 1.1-.9 2-2 2H6"
+        {...stroke}
+      />
     </svg>
   )
 }
